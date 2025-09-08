@@ -1,0 +1,35 @@
+RewriteEngine On
+
+# Redirect to https if not on localhost
+RewriteCond %{HTTP_HOST} !^localhost$ [NC]
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Handle routing for admin pages
+RewriteRule ^admin$ index.php?page=admin [L]
+RewriteRule ^admin/([a-zA-Z0-9_-]+)$ index.php?page=admin&section=$1 [L]
+
+# Handle routing for client pages
+RewriteRule ^dashboard$ index.php?page=dashboard [L]
+RewriteRule ^dashboard/([a-zA-Z0-9_-]+)$ index.php?page=dashboard&section=$1 [L]
+
+# Handle routing for login
+RewriteRule ^login$ index.php?page=login [L]
+
+# Handle routing for registration
+RewriteRule ^register$ index.php?page=register [L]
+
+# Handle routing for login processing
+RewriteRule ^login-process$ login-process.php [L]
+
+# Handle routing for registration processing
+RewriteRule ^register-process$ register-process.php [L]
+
+# Handle routing for logout
+RewriteRule ^logout$ logout.php [L]
+
+# Handle routing for other pages
+RewriteRule ^([a-zA-Z0-9_-]+)$ index.php?page=$1 [L]
+
+# Default route
+RewriteRule ^$ index.php?page=dashboard [L]
