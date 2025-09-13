@@ -1,0 +1,44 @@
+{
+  "temas": [
+    {
+      "nome": "Beleza",
+      "subtemas": ["Maquiagem", "Cuidados com a Pele", "Cabelo", "Perfumes"]
+    },
+    {
+      "nome": "Moda",
+      "subtemas": ["Estilo Feminino", "Estilo Masculino", "Tendências", "Acessórios"]
+    },
+    {
+      "nome": "Tecnologia",
+      "subtemas": ["Smartphones", "Gadgets", "Inteligência Artificial", "Desenvolvimento de Software"]
+    },
+    {
+      "nome": "Alimentação",
+      "subtemas": ["Receitas Saudáveis", "Culinária Internacional", "Dietas", "Bebidas"]
+    },
+    {
+      "nome": "Saúde",
+      "subtemas": ["Bem-estar", "Exercícios Físicos", "Saúde Mental", "Nutrição"]
+    },
+    {
+      "nome": "Esportes",
+      "subtemas": ["Futebol", "Basquete", "Fitness", "Esportes Radicais"]
+    },
+    {
+      "nome": "Educação",
+      "subtemas": ["Aprendizado Online", "Idiomas", "Carreira", "Desenvolvimento Pessoal"]
+    },
+    {
+      "nome": "Viagens",
+      "subtemas": ["Destinos Nacionais", "Destinos Internacionais", "Dicas de Viagem", "Aventura"]
+    },
+    {
+      "nome": "Finanças",
+      "subtemas": ["Investimentos", "Economia Pessoal", "Empreendedorismo", "Mercado Financeiro"]
+    },
+    {
+      "nome": "Automotivo",
+      "subtemas": ["Carros Elétricos", "Manutenção", "Novos Lançamentos", "Motos"]
+    }
+  ]
+}

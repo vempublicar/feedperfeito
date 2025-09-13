@@ -9,6 +9,6 @@ if (isUserLoggedIn()) {
 }
 
 // Redirect to login page
-header('Location: /login');
+header('Location: ' . $_SESSION['base_url'] . '/login');
 exit();
 ?>

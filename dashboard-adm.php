@@ -1,33 +1,38 @@
 <?php
 require_once 'config/session.php';
-require_once 'models/AdminUser.php';
 require_once 'models/UserOrder.php';
 require_once 'models/User.php';
 require_once 'models/Service.php';
 require_once 'models/ContentTemplate.php';
 require_once 'models/CreditPackage.php';
 
-// Require admin login
-requireAdminLogin();
-
-// Get current admin
-$current_admin = getCurrentAdmin();
-
-// Get statistics
+// Get current user from session
+// $current_user = getCurrentAdmin();
 $userModel = new User();
-$users = $userModel->all();
+$user = $userModel->find($_SESSION['admin_id']);
 
-$orderModel = new UserOrder();
-$orders = $orderModel->all();
+// If user is not logged in or role is not admin, redirect
+// if (!$current_user || $current_user['role'] !== 'admin') {
+//     header('Location: ' . $_SESSION['base_url'] . '/login');
+//     exit();
+// }
 
-$serviceModel = new Service();
-$services = $serviceModel->all();
+// Determine a seção ativa para destacar o menu
+$active_section = 'inicio'; // Default section
+if (isset($_GET['section'])) {
+  $active_section = $_GET['section'];
+}
 
-$templateModel = new ContentTemplate();
-$templates = $templateModel->all();
+// Use current_user as admin
+$current_admin = $user; // Keep this line as $current_user will hold the admin data
+// print_r($current_admin);
+// Get statistics
+$avatarUrl = '';
+if (file_exists('uploads/avatars/' . htmlspecialchars($current_admin['avatar_url']))) {
+    $avatarUrl = $_SESSION['base_url'].'/uploads/avatars/' . htmlspecialchars($current_admin['avatar_url']);
+}
 
-$packageModel = new CreditPackage();
-$packages = $packageModel->all();
+
 ?>
 
 <!DOCTYPE html>
@@ -58,6 +63,16 @@ $packages = $packageModel->all();
   </style>
 </head>
 <body class="bg-background">
+  <?php if (isset($_SESSION['status_type']) && isset($_SESSION['status_message'])): ?>
+        <div id="floatingMessage" class="fixed top-20 right-4 p-4 rounded-lg shadow-lg text-white z-50
+            <?php echo $_SESSION['status_type'] === 'success' ? 'bg-green-500' : 'bg-red-500'; ?>">
+            <?php echo htmlspecialchars($_SESSION['status_message']); ?>
+        </div>
+        <?php
+        unset($_SESSION['status_type']);
+        unset($_SESSION['status_message']);
+        ?>
+    <?php endif; ?>
   <div class="flex h-screen">
     <!-- Sidebar -->
     <div class="w-64 bg-white shadow-md border-r border-gray-200">
@@ -65,38 +80,79 @@ $packages = $packageModel->all();
         <h1 class="text-2xl font-bold text-black">
           <span class="font-bold">Feed</span><span class="font-light">Perfeito</span>
         </h1>
-        <p class="text-gray-600 text-sm">Admin Dashboard</p>
+        <p class="text-gray-600 text-sm">Admin Dashboard - <?php echo htmlspecialchars($_SESSION['admin_email'] ?? 'N/A'); ?></p>
       </div>
       
       <nav class="mt-6">
-        <a href="/admin" class="flex items-center px-6 py-3 text-black bg-gray-100 border-l-4 border-black">
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/inicio"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'inicio') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
           <i class="fas fa-home mr-3"></i>
           <span>Dashboard</span>
         </a>
-        <a href="/admin/pedidos" class="flex items-center px-6 py-3 text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent">
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/pedidos"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'pedidos') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
           <i class="fas fa-shopping-cart mr-3"></i>
           <span>Pedidos</span>
         </a>
-        <a href="/admin/clientes" class="flex items-center px-6 py-3 text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent">
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/clientes"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'clientes') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
           <i class="fas fa-users mr-3"></i>
           <span>Clientes</span>
         </a>
-        <a href="/admin/produtos" class="flex items-center px-6 py-3 text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent">
+        <!-- <a href="<?php echo $_SESSION['base_url']; ?>/admin/produtos"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'produtos') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
           <i class="fas fa-box mr-3"></i>
           <span>Produtos</span>
+        </a> -->
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/produtos-credito"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'produtos-credito') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-coins mr-3"></i>
+          <span>Produtos de Crédito</span>
         </a>
-        <a href="/admin/relatorios" class="flex items-center px-6 py-3 text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent">
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/produtos-carrossel"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'produtos-carrossel') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-images mr-3"></i>
+          <span>Produtos Carrossel</span>
+        </a>
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/produtos-feed"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'produtos-feed') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-rss mr-3"></i>
+          <span>Produtos Feed</span>
+        </a>
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/produtos-multiplo"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'produtos-multiplo') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-bookmark mr-3"></i>
+          <span>Produtos Múltiplos</span>
+        </a>
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/relatorios"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'relatorios') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
           <i class="fas fa-chart-bar mr-3"></i>
           <span>Relatórios</span>
         </a>
-        <a href="/admin/configuracoes" class="flex items-center px-6 py-3 text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent">
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/configuracoes"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'configuracoes') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
           <i class="fas fa-cog mr-3"></i>
           <span>Configurações</span>
+        </a>
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/webhooks-yampi-created"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'webhooks-yampi-created') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-file-invoice mr-3"></i>
+          <span>Yampi Criados</span>
+        </a>
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/webhooks-yampi-paid"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'webhooks-yampi-paid') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-money-check-alt mr-3"></i>
+          <span>Yampi Pagos</span>
+        </a>
+        <a href="<?php echo $_SESSION['base_url']; ?>/admin/adm-products-history"
+          class="flex items-center px-6 py-3 <?php echo ($active_section === 'adm-products-history') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
+          <i class="fas fa-history mr-3"></i>
+          <span>Histórico de Produtos</span>
         </a>
       </nav>
       
       <div class="absolute bottom-0 w-64 p-4 border-t border-gray-200">
-        <a href="/logout" class="flex items-center text-gray-600 hover:text-black">
+        <a href="<?php echo $_SESSION['base_url']; ?>/logout" class="flex items-center text-gray-600 hover:text-black">
           <i class="fas fa-sign-out-alt mr-3"></i>
           <span>Sair</span>
         </a>
@@ -126,10 +182,14 @@ $packages = $packageModel->all();
               <span class="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">3</span>
             </div>
             <div class="flex items-center">
-              <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <i class="fas fa-user"></i>
+              <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center overflow-hidden">
+                <?php if (!empty($avatarUrl)): ?>
+                  <img src="<?= htmlspecialchars($avatarUrl)?>" alt="Avatar" class="w-full h-full object-cover">
+                <?php else: ?>
+                  <i class="fas fa-user"></i>
+                <?php endif; ?>
               </div>
-              <span class="ml-2 text-black"><?php echo htmlspecialchars($current_admin['name']); ?></span>
+              <span class="ml-2 text-black"><?php echo htmlspecialchars($_SESSION['admin_name'] ?? 'Admin'); ?></span>
             </div>
           </div>
         </div>
@@ -138,235 +198,68 @@ $packages = $packageModel->all();
       <!-- Content -->
       <main class="flex-1 overflow-y-auto p-6">
         <!-- Dashboard content (default) -->
-        <div id="dashboard-content">
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow-md p-6">
-              <div class="flex items-center">
-                <div class="rounded-full bg-blue-100 p-3 mr-4">
-                  <i class="fas fa-shopping-cart text-blue-500"></i>
-                </div>
-                <div>
-                  <p class="text-gray-500">Total Pedidos</p>
-                  <p class="text-2xl font-bold text-black"><?php echo count($orders); ?></p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-              <div class="flex items-center">
-                <div class="rounded-full bg-green-100 p-3 mr-4">
-                  <i class="fas fa-users text-green-500"></i>
-                </div>
-                <div>
-                  <p class="text-gray-500">Clientes</p>
-                  <p class="text-2xl font-bold text-black"><?php echo count($users); ?></p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow-md p-6">
-              <div class="flex items-center">
-                <div class="rounded-full bg-yellow-100 p-3 mr-4">
-                  <i class="fas fa-coins text-yellow-500"></i>
-                </div>
-                <div>
-                  <p class="text-gray-500">Créditos Vendidos</p>
-                  <p class="text-2xl font-bold text-black">1,240</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h3 class="text-lg font-bold text-black mb-4">Pedidos Recentes</h3>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serviço</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
-                  </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                  <?php 
-                  $displayedOrders = 0;
-                  foreach ($orders as $order):
-                    if ($displayedOrders >= 3) break;
-                    $displayedOrders++;
-                    
-                    // Get user for this order
-                    $orderUser = $userModel->find($order['user_id']);
-                  ?>
-                  <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#<?php echo $order['id']; ?></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-black"><?php echo htmlspecialchars($orderUser['name'] ?? 'Cliente'); ?></td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo htmlspecialchars($order['title']); ?></td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <?php
-                      $statusClass = '';
-                      $statusText = '';
-                      switch ($order['status']) {
-                        case 'confirmed':
-                          $statusClass = 'bg-blue-100 text-blue-800';
-                          $statusText = 'Confirmado';
-                          break;
-                        case 'in_production':
-                          $statusClass = 'bg-yellow-100 text-yellow-800';
-                          $statusText = 'Em Produção';
-                          break;
-                        case 'in_approval':
-                          $statusClass = 'bg-green-100 text-green-800';
-                          $statusText = 'Aprovação';
-                          break;
-                        case 'download_available':
-                          $statusClass = 'bg-purple-100 text-purple-800';
-                          $statusText = 'Download';
-                          break;
-                        default:
-                          $statusClass = 'bg-gray-100 text-gray-800';
-                          $statusText = ucfirst($order['status']);
-                      }
-                      ?>
-                      <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $statusClass; ?>">
-                        <?php echo $statusText; ?>
-                      </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo date('d/m/Y', strtotime($order['created_at'])); ?></td>
-                  </tr>
-                  <?php endforeach; ?>
-                  
-                  <?php if ($displayedOrders == 0): ?>
-                  <tr>
-                    <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                      Nenhum pedido encontrado
-                    </td>
-                  </tr>
-                  <?php endif; ?>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          
-          <div class="bg-white rounded-lg shadow-md p-6">
-            <h3 class="text-lg font-bold text-black mb-4">Clientes Recentes</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <?php 
-              $displayedUsers = 0;
-              foreach ($users as $user):
-                if ($displayedUsers >= 3) break;
-                $displayedUsers++;
-              ?>
-              <div class="border border-gray-200 rounded p-4">
-                <div class="flex items-center">
-                  <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-                    <i class="fas fa-user text-gray-600"></i>
-                  </div>
-                  <div>
-                    <p class="font-medium text-black"><?php echo htmlspecialchars($user['name']); ?></p>
-                    <p class="text-gray-500 text-sm"><?php echo htmlspecialchars($user['email']); ?></p>
-                  </div>
-                </div>
-              </div>
-              <?php endforeach; ?>
-              
-              <?php if ($displayedUsers == 0): ?>
-              <div class="col-span-3 text-center text-gray-500">
-                Nenhum cliente encontrado
-              </div>
-              <?php endif; ?>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Content areas for other sections -->
-        <div id="pedidos-content" class="hidden">
-          <?php include 'includes-adm/pedidos.php'; ?>
-        </div>
-        
-        <div id="clientes-content" class="hidden">
-          <?php include 'includes-adm/clientes.php'; ?>
-        </div>
-        
-        <div id="produtos-content" class="hidden">
-          <?php include 'includes-adm/produtos.php'; ?>
-        </div>
-        
-        <div id="relatorios-content" class="hidden">
-          <?php include 'includes-adm/relatorios.php'; ?>
-        </div>
-        
-        <div id="configuracoes-content" class="hidden">
-          <?php include 'includes-adm/configuracoes.php'; ?>
-        </div>
+        <!-- Dashboard content (default) -->
+        <?php
+        $requested_section = 'inicio'; // Default section
+
+        if (isset($_GET['section'])) {
+          $requested_section = $_GET['section'];
+        }
+
+        // Mapping of URL segments to include files
+        $include_map = [
+          'inicio' => 'includes-adm/resumo-adm.php',
+          'pedidos' => 'includes-adm/pedidos.php',
+          'clientes' => 'includes-adm/clientes.php',
+          'producao-pedidos' => 'includes-adm/producao-pedidos.php',
+          'produtos-credito' => 'includes-adm/credit-products.php',
+          'produtos-carrossel' => 'includes-adm/carousel-products.php',
+          'produtos-feed' => 'includes-adm/feed-products.php',
+          'produtos-multiplo' => 'includes-adm/multiple-products.php',
+          'relatorios' => 'includes-adm/relatorios.php',
+          'configuracoes' => 'includes-adm/configuracoes.php',
+          'webhooks-yampi-created' => 'includes-adm/yampi-webhooks-created.php',
+          'webhooks-yampi-paid' => 'includes-adm/yampi-webhooks-paid.php',
+          'adm-products-history' => 'includes-adm/adm-products-history.php',
+        ];
+
+        // Determine the file to include based on the requested section
+        $file_to_include = $include_map[$requested_section] ?? 'includes-adm/resumo-adm.php';
+
+        // Include the file if it exists, otherwise include the default dashboard
+        if (file_exists($file_to_include)) {
+          include $file_to_include;
+        } else {
+          // Fallback for invalid or unrecognized sections
+          include 'includes-adm/resumo-adm.php';
+        }
+        ?>
       </main>
     </div>
   </div>
-  
+  <?php
+    // Add logic to include modal_profile_completion.php if name or phone is empty for admin
+    if (empty($current_admin['name']) || empty($current_admin['phone'])) {
+        include 'modal_profile_completion.php';
+    }
+  ?>
   <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const floatingMessage = document.getElementById('floatingMessage');
+            if (floatingMessage) {
+                setTimeout(() => {
+                    floatingMessage.style.transition = 'opacity 1s ease-out';
+                    floatingMessage.style.opacity = '0';
+                    setTimeout(() => {
+                        floatingMessage.remove();
+                    }, 1000); // Remove o elemento após a transição
+                }, 5000); // 5 segundos antes de iniciar o fade out
+            }
+            });
     // Sidebar toggle functionality
     document.getElementById('sidebarToggle').addEventListener('click', function() {
       const sidebar = document.querySelector('.w-64');
       sidebar.classList.toggle('hidden');
-    });
-    
-    // Menu navigation
-    const menuItems = document.querySelectorAll('nav a[href^="/admin/"]');
-    const contentAreas = document.querySelectorAll('[id$="-content"]');
-    
-    // Check if we're on a specific section
-    const path = window.location.pathname;
-    const sectionMatch = path.match(/\/admin\/(.+)/);
-    
-    if (sectionMatch) {
-      const section = sectionMatch[1];
-      const targetElement = document.getElementById(section + '-content');
-      if (targetElement) {
-        // Hide default dashboard content
-        document.getElementById('dashboard-content').classList.add('hidden');
-        // Show selected content
-        targetElement.classList.remove('hidden');
-        
-        // Update header title
-        const menuItem = Array.from(menuItems).find(item => item.getAttribute('href') === '/admin/' + section);
-        if (menuItem) {
-          const title = menuItem.querySelector('span').textContent;
-          document.querySelector('header h2').textContent = title;
-        }
-      }
-    }
-    
-    menuItems.forEach(item => {
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Get the section from the href
-        const href = this.getAttribute('href');
-        const section = href.replace('/admin/', '');
-        
-        // Hide all content areas
-        contentAreas.forEach(area => {
-          area.classList.add('hidden');
-        });
-        
-        // Show selected content area
-        const targetElement = document.getElementById(section + '-content');
-        if (targetElement) {
-          // Hide default dashboard content
-          document.getElementById('dashboard-content').classList.add('hidden');
-          // Show selected content
-          targetElement.classList.remove('hidden');
-        }
-        
-        // Update header title
-        const title = this.querySelector('span').textContent;
-        document.querySelector('header h2').textContent = title;
-        
-        // Update URL without page reload
-        history.pushState(null, '', href);
-      });
     });
   </script>
 </body>

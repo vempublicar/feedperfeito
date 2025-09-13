@@ -1,7 +1,32 @@
 <?php
 // Supabase configuration
-define('SUPABASE_URL', 'https://phbnwlplkdawjgfyscxe.supabase.co');
-define('SUPABASE_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoYm53bHBsa2Rhd2pnZnlzY3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcyOTc3NTgsImV4cCI6MjA3Mjg3Mzc1OH0.DrKcSbnC7iENx_Xv94OhJFZ_xTLBxYrlNk7YePESdhk');
+// Função para carregar variáveis de ambiente de um arquivo .env
+if (!function_exists('loadEnv')) {
+    function loadEnv($path) {
+        if (!file_exists($path)) {
+            return false;
+        }
+
+        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($lines as $line) {
+            if (strpos($line, '#') === 0) {
+                continue;
+            }
+            list($name, $value) = explode('=', $line, 2);
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+            putenv(sprintf('%s=%s', $name, $value));
+        }
+        return true;
+    }
+}
+
+// Carrega as variáveis do .env
+loadEnv(__DIR__ . '/../.env');
+
+define('SUPABASE_URL', getenv('SUPABASE_URL'));
+define('SUPABASE_KEY', getenv('SUPABASE_KEY'));
+define('SUPABASE_ANON_KEY', getenv('SUPABASE_ANON_KEY'));
 
 // Function to make API requests to Supabase
 function supabase_request($endpoint, $method = 'GET', $data = null) {
@@ -19,8 +44,12 @@ function supabase_request($endpoint, $method = 'GET', $data = null) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     
-    if ($data) {
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    if ($data && $method !== 'GET') { // Log data only if it exists and it's not a GET request
+        $json_data = json_encode($data);
+        error_log("Supabase Request - URL: " . $url . ", Method: " . $method . ", Data: " . $json_data);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+    } else if ($method === 'GET') {
+        error_log("Supabase Request - URL: " . $url . ", Method: " . $method);
     }
     
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -32,6 +61,10 @@ function supabase_request($endpoint, $method = 'GET', $data = null) {
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     
+    if ($method === 'GET') { // Log response for GET requests
+        error_log("Supabase Response (GET) - HTTP Code: " . $httpCode . ", Response: " . $response);
+    }
+
     if (curl_error($ch)) {
         $error = curl_error($ch);
         curl_close($ch);
@@ -47,82 +80,29 @@ function supabase_request($endpoint, $method = 'GET', $data = null) {
     return json_decode($response, true);
 }
 
-// Function to get all records from a table
-function get_all($table) {
-    try {
-        return supabase_request($table);
-    } catch (Exception $e) {
-        error_log("Error getting records from " . $table . ": " . $e->getMessage());
-        return [];
-    }
-}
 
-// Function to get a record by ID
-function get_by_id($table, $id) {
-    try {
-        $result = supabase_request($table . '?id=eq.' . $id);
-        return $result ? $result[0] : null;
-    } catch (Exception $e) {
-        error_log("Error getting record from " . $table . " with id " . $id . ": " . $e->getMessage());
-        return null;
-    }
-}
-
-// Function to insert a new record
-function insert($table, $data) {
-    try {
-        return supabase_request($table, 'POST', $data);
-    } catch (Exception $e) {
-        error_log("Error inserting record into " . $table . ": " . $e->getMessage());
-        return false;
-    }
-}
-
-// Function to update a record
-function update($table, $id, $data) {
-    try {
-        return supabase_request($table . '?id=eq.' . $id, 'PATCH', $data);
-    } catch (Exception $e) {
-        error_log("Error updating record in " . $table . " with id " . $id . ": " . $e->getMessage());
-        return false;
-    }
-}
-
-// Function to delete a record
-function delete($table, $id) {
-    try {
-        return supabase_request($table . '?id=eq.' . $id, 'DELETE');
-    } catch (Exception $e) {
-        error_log("Error deleting record from " . $table . " with id " . $id . ": " . $e->getMessage());
-        return false;
-    }
-}
-
-// Function to execute SQL queries via Supabase SQL API
-function supabase_execute_sql($sql) {
-    $url = SUPABASE_URL . '/rest/v1/rpc/execute_sql'; // This might not be the correct endpoint
+// Function to make API requests to Supabase Auth
+function supabase_auth_request($endpoint, $method = 'POST', $data = null) {
+    $url = SUPABASE_URL . '/auth/v1/' . $endpoint;
     
     $headers = [
-        'apikey: ' . SUPABASE_KEY,
-        'Authorization: Bearer ' . SUPABASE_KEY,
         'Content-Type: application/json',
-        'Prefer: return=representation'
-    ];
-    
-    $data = [
-        'sql' => $sql
+        'apikey: ' . SUPABASE_KEY,
+        'Authorization: Bearer ' . SUPABASE_KEY, // Use SUPABASE_KEY for Authorization
     ];
     
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+    
+    if ($data) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    }
+    
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    // SSL certificate options
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Desabilitado para testes locais
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);     // Desabilitado para testes locais
-    // curl_setopt($ch, CURLOPT_CAINFO, 'C:\xampp\apache\bin\curl-ca-bundle.crt');
     
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -130,16 +110,19 @@ function supabase_execute_sql($sql) {
     if (curl_error($ch)) {
         $error = curl_error($ch);
         curl_close($ch);
-        throw new Exception("cURL Error: " . $error);
+        throw new Exception("cURL Error for Auth: " . $error);
     }
     
     curl_close($ch);
     
+    $responseData = json_decode($response, true);
+
     if ($httpCode >= 400) {
-        throw new Exception("HTTP Error: " . $httpCode . " - Response: " . $response);
+        $errorMessage = $responseData['msg'] ?? $responseData['message'] ?? 'Erro desconhecido na autenticação.';
+        throw new Exception("HTTP Error for Auth: " . $httpCode . " - " . $errorMessage);
     }
     
-    return json_decode($response, true);
+    return $responseData;
 }
 
 ?>

@@ -11,7 +11,7 @@ class ContentTemplate extends BaseModel {
     // Get all active templates
     public function getActiveTemplates() {
         try {
-            return supabase_request($this->table . '?is_active=eq.true');
+            return supabase_request($this->table . '?is_active=eq.true'); // Calls the global function
         } catch (Exception $e) {
             error_log("Error getting active templates: " . $e->getMessage());
             return [];
@@ -21,7 +21,7 @@ class ContentTemplate extends BaseModel {
     // Get featured templates
     public function getFeaturedTemplates() {
         try {
-            return supabase_request($this->table . '?is_featured=eq.true&is_active=eq.true');
+            return supabase_request($this->table . '?is_featured=eq.true&is_active=eq.true'); // Calls the global function
         } catch (Exception $e) {
             error_log("Error getting featured templates: " . $e->getMessage());
             return [];
@@ -31,7 +31,7 @@ class ContentTemplate extends BaseModel {
     // Get templates by category
     public function getTemplatesByCategory($category) {
         try {
-            return supabase_request($this->table . '?category=eq.' . urlencode($category) . '&is_active=eq.true');
+            return supabase_request($this->table . '?category=eq.' . urlencode($category) . '&is_active=eq.true'); // Calls the global function
         } catch (Exception $e) {
             error_log("Error getting templates by category: " . $e->getMessage());
             return [];

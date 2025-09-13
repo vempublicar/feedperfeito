@@ -44,19 +44,19 @@
         </div>
         <nav class="hidden md:block">
           <ul class="flex space-x-6">
-            <li><a href="/" class="text-black hover:text-gray-600">Home</a></li>
-            <li><a href="/#services" class="text-black hover:text-gray-600">Services</a></li>
-            <li><a href="/#projects" class="text-black hover:text-gray-600">Projects</a></li>
+            <li><a href="<?php echo $_SESSION['base_url']; ?>/" class="text-black hover:text-gray-600">Home</a></li>
+            <li><a href="<?php echo $_SESSION['base_url']; ?>/#services" class="text-black hover:text-gray-600">Services</a></li>
+            <li><a href="<?php echo $_SESSION['base_url']; ?>/#projects" class="text-black hover:text-gray-600">Projects</a></li>
             <li class="relative group">
-              <a href="/#pages" class="text-black hover:text-gray-600">Pages</a>
+              <a href="<?php echo $_SESSION['base_url']; ?>/#pages" class="text-black hover:text-gray-600">Pages</a>
               <ul class="absolute hidden group-hover:block bg-white shadow-lg rounded mt-2 py-2 w-48 z-10">
-                <li><a href="/about" class="block px-4 py-2 text-black hover:bg-gray-100">About Us</a></li>
-                <li><a href="/faqs" class="block px-4 py-2 text-black hover:bg-gray-100">FAQs</a></li>
-                <li><a href="/login" class="block px-4 py-2 text-black hover:bg-gray-100">Login</a></li>
+                <li><a href="<?php echo $_SESSION['base_url']; ?>/about" class="block px-4 py-2 text-black hover:bg-gray-100">About Us</a></li>
+                <li><a href="<?php echo $_SESSION['base_url']; ?>/faqs" class="block px-4 py-2 text-black hover:bg-gray-100">FAQs</a></li>
+                <li><a href="<?php echo $_SESSION['base_url']; ?>/login" class="block px-4 py-2 text-black hover:bg-gray-100">Login</a></li>
               </ul>
             </li>
-            <li><a href="/#infos" class="text-black hover:text-gray-600">Infos</a></li>
-            <li><a href="/#contact" class="text-black hover:text-gray-600">Contact</a></li>
+            <li><a href="<?php echo $_SESSION['base_url']; ?>/#infos" class="text-black hover:text-gray-600">Infos</a></li>
+            <li><a href="<?php echo $_SESSION['base_url']; ?>/#contact" class="text-black hover:text-gray-600">Contact</a></li>
           </ul>
         </nav>
         <button class="md:hidden text-black">
@@ -102,18 +102,7 @@
                 <?php endif; ?>
               </div>
               
-              <form id="register-form" action="register-process.php" method="post">
-                <div class="mb-6">
-                  <input 
-                    type="text" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" 
-                    name="name" 
-                    id="name" 
-                    placeholder="Full Name" 
-                    required
-                  >
-                </div>
-                
+              <form id="register-form" action="api/register.php" method="post">
                 <div class="mb-6">
                   <input 
                     type="email" 
@@ -174,7 +163,7 @@
                 </div>
                 
                 <div class="text-center">
-                  <a href="/login" class="text-black hover:text-gray-600 underline">Already have an account? Login</a>
+                  <a href="<?php echo $_SESSION['base_url']; ?>/login" class="text-black hover:text-gray-600 underline">Already have an account? Login</a>
                 </div>
               </form>
             </div>
@@ -202,7 +191,7 @@
           </h4>
         </div>
         <div>
-          <a href="/contact" class="bg-black text-white py-3 px-6 rounded font-semibold hover:bg-gray-800 transition duration-300 inline-block">
+          <a href="<?php echo $_SESSION['base_url']; ?>/contact" class="bg-black text-white py-3 px-6 rounded font-semibold hover:bg-gray-800 transition duration-300 inline-block">
             Contact Us Now!
           </a>
         </div>
@@ -215,9 +204,9 @@
     <div class="container mx-auto px-4">
       <div class="text-center">
         <p class="text-gray-600">
-          Copyright © 2036 <a href="/" class="text-black hover:text-gray-600">Tale SEO Agency</a>. All rights reserved.
+          Copyright © 2036 <a href="<?php echo $_SESSION['base_url']; ?>/" class="text-black hover:text-gray-600">Tale SEO Agency</a>. All rights reserved.
           <br>
-          Design: <a href="https://templatemo.com" target="_blank" class="text-black hover:text-gray-600">TemplateMo</a> 
+          Design: <a href="https://templatemo.com" target="_blank" class="text-black hover:text-gray-600">TemplateMo</a>
           Distribution: <a href="https://themewagon.com" class="text-black hover:text-gray-600">ThemeWagon</a>
         </p>
       </div>

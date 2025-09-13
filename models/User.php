@@ -1,62 +1,57 @@
 <?php
-require_once 'models/BaseModel.php';
+require_once __DIR__ . '/BaseModel.php';
+require_once __DIR__ . '/../config/database.php'; // Needed for supabase_auth_request
+require_once __DIR__ . '/../api/get/all.php';
+require_once __DIR__ . '/../api/get/by_id.php';
+require_once __DIR__ . '/../api/post/insert.php';
+require_once __DIR__ . '/../api/put/update.php';
+require_once __DIR__ . '/../api/delete/delete.php';
 
 class User extends BaseModel {
-    protected $table = 'users';
+    protected $table = 'profiles';
     
     public function __construct() {
         parent::__construct();
     }
     
-    // Find user by email
-    public function findByEmail($email) {
+    // Register user via Supabase Auth
+    public function registerUser($email, $password) {
         try {
-            $result = supabase_request($this->table . '?email=eq.' . urlencode($email));
-            return $result ? $result[0] : null;
+            $response = supabase_auth_request('signup', 'POST', [
+                'email' => $email,
+                'password' => $password
+            ]);
+            return $response;
         } catch (Exception $e) {
-            error_log("Error finding user by email: " . $e->getMessage());
+            error_log("Error registering user: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    // Login user via Supabase Auth
+    public function loginUser($email, $password) {
+        try {
+            $response = supabase_auth_request('token?grant_type=password', 'POST', [
+                'email' => $email,
+                'password' => $password
+            ]);
+            return $response;
+        } catch (Exception $e) {
+            error_log("Error logging in user: " . $e->getMessage());
             return null;
         }
     }
     
-    // Authenticate user
-    public function authenticate($email, $password) {
-        $user = $this->findByEmail($email);
-        
-        if ($user && password_verify($password, $user['password'])) {
-            return $user;
+    // Find user by email (from public.users table)
+    public function findByEmail($email) {
+        try {
+            $result = get_all($this->table . '?email=eq.' . urlencode($email));
+            return $result ? $result[0] : null;
+        } catch (Exception $e) {
+            error_log("Error finding user by email in public.users: " . $e->getMessage());
+            return null;
         }
-        
-        return null;
     }
-    
-    // Create user with hashed password
-    public function createUser($name, $email, $password) {
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        
-        $data = [
-            'name' => $name,
-            'email' => $email,
-            'password' => $hashedPassword,
-            'credits' => 0
-        ];
-        
-        return $this->create($data);
-    }
-    
-    // Update user credits
-    public function updateCredits($userId, $credits) {
-        return $this->update($userId, ['credits' => $credits]);
-    }
-    
-    // Add credits to user
-    public function addCredits($userId, $credits) {
-        $user = $this->find($userId);
-        if ($user) {
-            $newCredits = $user['credits'] + $credits;
-            return $this->updateCredits($userId, $newCredits);
-        }
-        return false;
-    }
+
 }
 ?>

@@ -1,57 +1,9 @@
 <?php
-// Simulated data for clients
-$clientes = [
-  [
-    'id' => 'CLI-1001',
-    'nome' => 'André M.',
-    'email' => 'andre@email.com',
-    'telefone' => '(11) 99999-9999',
-    'data_cadastro' => '2025-08-15',
-    'ultima_compra' => '2025-09-05',
-    'status' => 'Ativo',
-    'creditos' => 85
-  ],
-  [
-    'id' => 'CLI-1002',
-    'nome' => 'Maria S.',
-    'email' => 'maria@email.com',
-    'telefone' => '(11) 88888-8888',
-    'data_cadastro' => '2025-08-20',
-    'ultima_compra' => '2025-09-07',
-    'status' => 'Ativo',
-    'creditos' => 120
-  ],
-  [
-    'id' => 'CLI-1003',
-    'nome' => 'João P.',
-    'email' => 'joao@email.com',
-    'telefone' => '(11) 77777-7777',
-    'data_cadastro' => '2025-09-01',
-    'ultima_compra' => '2025-09-08',
-    'status' => 'Ativo',
-    'creditos' => 45
-  ],
-  [
-    'id' => 'CLI-1004',
-    'nome' => 'Ana R.',
-    'email' => 'ana@email.com',
-    'telefone' => '(11) 66666-6666',
-    'data_cadastro' => '2025-07-22',
-    'ultima_compra' => '2025-08-30',
-    'status' => 'Inativo',
-    'creditos' => 0
-  ],
-  [
-    'id' => 'CLI-1005',
-    'nome' => 'Carlos M.',
-    'email' => 'carlos@email.com',
-    'telefone' => '(11) 55555-5555',
-    'data_cadastro' => '2025-08-05',
-    'ultima_compra' => '2025-09-03',
-    'status' => 'Bloqueado',
-    'creditos' => 20
-  ]
-];
+require_once __DIR__ . '/../models/User.php';
+
+$userModel = new User();
+$clientes = $userModel->all(); // Assuming all() now retrieves from 'profiles' table
+
 ?>
 
 <div class="bg-white rounded-lg shadow-md p-6">
@@ -96,38 +48,36 @@ $clientes = [
       <tbody class="bg-white divide-y divide-gray-200">
         <?php foreach ($clientes as $cliente): ?>
         <tr>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-black"><?= htmlspecialchars($cliente['id']) ?></td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-black"><?= htmlspecialchars($cliente['id'] ?? 'N/A') ?></td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm font-medium text-black"><?= htmlspecialchars($cliente['nome']) ?></div>
+            <div class="text-sm font-medium text-black"><?= htmlspecialchars($cliente['name'] ?? 'N/A') ?></div>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
-            <div class="text-sm text-gray-500"><?= htmlspecialchars($cliente['email']) ?></div>
-            <div class="text-sm text-gray-500"><?= htmlspecialchars($cliente['telefone']) ?></div>
+            <div class="text-sm text-gray-500"><?= htmlspecialchars($cliente['email'] ?? 'N/A') ?></div>
+            <div class="text-sm text-gray-500"><?= htmlspecialchars($cliente['phone'] ?? 'N/A') ?></div>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($cliente['data_cadastro']) ?></td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($cliente['ultima_compra']) ?></td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars(date('d/m/Y', strtotime($cliente['created_at'] ?? 'now'))) ?></td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars(date('d/m/Y', strtotime($cliente['updated_at'] ?? 'now'))) ?></td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-black">
-            <i class="fas fa-coins text-yellow-500 mr-1"></i> <?= htmlspecialchars($cliente['creditos']) ?>
+            <i class="fas fa-coins text-yellow-500 mr-1"></i> <?= htmlspecialchars($cliente['credits'] ?? 0) ?>
           </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <?php
             $statusClass = '';
-            switch ($cliente['status']) {
-              case 'Ativo':
-                $statusClass = 'bg-green-100 text-green-800';
+            $statusText = $cliente['role'] ?? 'N/A';
+            switch ($statusText) {
+              case 'user':
+                $statusClass = 'bg-blue-100 text-blue-800';
                 break;
-              case 'Inativo':
-                $statusClass = 'bg-gray-100 text-gray-800';
-                break;
-              case 'Bloqueado':
-                $statusClass = 'bg-red-100 text-red-800';
+              case 'admin':
+                $statusClass = 'bg-purple-100 text-purple-800';
                 break;
               default:
                 $statusClass = 'bg-gray-100 text-gray-800';
             }
             ?>
             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $statusClass ?>">
-              <?= htmlspecialchars($cliente['status']) ?>
+              <?= htmlspecialchars(ucfirst($statusText)) ?>
             </span>
           </td>
           <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -149,7 +99,7 @@ $clientes = [
   
   <div class="mt-6 flex items-center justify-between">
     <div class="text-sm text-gray-500">
-      Mostrando <span class="font-medium">1</span> a <span class="font-medium">5</span> de <span class="font-medium">42</span> resultados
+      Mostrando <span class="font-medium">1</span> a <span class="font-medium"><?= count($clientes) ?></span> de <span class="font-medium"><?= count($clientes) ?></span> resultados
     </div>
     <div class="flex space-x-2">
       <button class="px-3 py-1 rounded border border-gray-300 text-gray-700 hover:bg-gray-50">

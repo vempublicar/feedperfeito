@@ -12,7 +12,7 @@ class Promotion extends BaseModel {
     public function getActivePromotions() {
         try {
             $now = date('Y-m-d H:i:s');
-            return supabase_request($this->table . '?is_active=eq.true&expires_at=gt.' . urlencode($now) . '&order=created_at.desc');
+            return supabase_request($this->table . '?is_active=eq.true&expires_at=gt.' . urlencode($now) . '&order=created_at.desc'); // Calls the global function
         } catch (Exception $e) {
             error_log("Error getting active promotions: " . $e->getMessage());
             return [];
@@ -22,7 +22,7 @@ class Promotion extends BaseModel {
     // Get promotion by ID
     public function getPromotionById($id) {
         try {
-            $result = supabase_request($this->table . '?id=eq.' . $id);
+            $result = supabase_request($this->table . '?id=eq.' . $id); // Calls the global function
             return $result ? $result[0] : null;
         } catch (Exception $e) {
             error_log("Error getting promotion by ID: " . $e->getMessage());

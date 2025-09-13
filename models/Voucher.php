@@ -11,7 +11,7 @@ class Voucher extends BaseModel {
     // Get voucher by code
     public function getVoucherByCode($code) {
         try {
-            $result = supabase_request($this->table . '?code=eq.' . urlencode($code));
+            $result = supabase_request($this->table . '?code=eq.' . urlencode($code)); // Calls the global function
             return $result ? $result[0] : null;
         } catch (Exception $e) {
             error_log("Error getting voucher by code: " . $e->getMessage());
@@ -23,7 +23,7 @@ class Voucher extends BaseModel {
     public function isVoucherValid($code) {
         try {
             $now = date('Y-m-d H:i:s');
-            $result = supabase_request($this->table . '?code=eq.' . urlencode($code) . '&is_used=eq.false&expires_at=gt.' . urlencode($now));
+            $result = supabase_request($this->table . '?code=eq.' . urlencode($code) . '&is_used=eq.false&expires_at=gt.' . urlencode($now)); // Calls the global function
             return $result ? $result[0] : null;
         } catch (Exception $e) {
             error_log("Error checking voucher validity: " . $e->getMessage());
@@ -39,7 +39,7 @@ class Voucher extends BaseModel {
             'used_at' => date('Y-m-d H:i:s')
         ];
         
-        return $this->update($voucherId, $data);
+        return $this->update($voucherId, $data); // Calls the global function
     }
 }
 ?>

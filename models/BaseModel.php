@@ -1,5 +1,10 @@
 <?php
-require_once 'config/database.php';
+require_once __DIR__.'/../config/database.php';
+require_once __DIR__.'/../api/get/all.php';
+require_once __DIR__.'/../api/get/by_id.php';
+require_once __DIR__.'/../api/post/insert.php';
+require_once __DIR__.'/../api/put/update.php';
+require_once __DIR__.'/../api/delete/delete.php';
 
 class BaseModel {
     protected $table;
@@ -12,7 +17,7 @@ class BaseModel {
     // Get all records
     public function all() {
         try {
-            return get_all($this->table);
+            return get_all($this->table); // Calls the global function
         } catch (Exception $e) {
             error_log("Error in all() for table " . $this->table . ": " . $e->getMessage());
             return [];
@@ -22,7 +27,7 @@ class BaseModel {
     // Find a record by ID
     public function find($id) {
         try {
-            return get_by_id($this->table, $id);
+            return get_by_id($this->table, $id); // Calls the global function
         } catch (Exception $e) {
             error_log("Error in find() for table " . $this->table . " with id " . $id . ": " . $e->getMessage());
             return null;
@@ -40,7 +45,7 @@ class BaseModel {
                 $data['updated_at'] = date('Y-m-d H:i:s');
             }
             
-            return insert($this->table, $data);
+            return insert($this->table, $data); // Calls the global function
         } catch (Exception $e) {
             error_log("Error in create() for table " . $this->table . ": " . $e->getMessage());
             return false;
@@ -53,7 +58,7 @@ class BaseModel {
             // Add updated_at timestamp
             $data['updated_at'] = date('Y-m-d H:i:s');
             
-            return update($this->table, $id, $data);
+            return update($this->table, $id, $data); // Calls the global function
         } catch (Exception $e) {
             error_log("Error in update() for table " . $this->table . " with id " . $id . ": " . $e->getMessage());
             return false;
@@ -63,7 +68,7 @@ class BaseModel {
     // Delete a record
     public function delete($id) {
         try {
-            return delete($this->table, $id);
+            return delete($this->table, $id); // Calls the global function
         } catch (Exception $e) {
             error_log("Error in delete() for table " . $this->table . " with id " . $id . ": " . $e->getMessage());
             return false;
@@ -91,7 +96,7 @@ class BaseModel {
     // Find records with custom query
     public function query($query) {
         try {
-            return supabase_request($this->table . $query);
+            return supabase_request($query);
         } catch (Exception $e) {
             error_log("Error in query() for table " . $this->table . " with query " . $query . ": " . $e->getMessage());
             return [];
