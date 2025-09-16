@@ -136,11 +136,19 @@ function custoPorCredito($pack)
             class="bg-black text-white py-2 px-4 rounded font-medium hover:bg-gray-800 transition duration-300">
             <i class="fas fa-check mr-2"></i> Confirmar Compra
           </button>
+          <button type="submit" id="pagamentoRealizadoBtn" form="verificarPagamentoForm"
+            class="hidden bg-green-500 text-white py-2 px-4 rounded font-medium hover:bg-green-600 transition duration-300">
+            <i class="fas fa-check-circle mr-2"></i> Pagamento Realizado
+          </button>
         </div>
       </div>
     </form>
   </div>
 </div>
+
+<form id="verificarPagamentoForm" action="<?= $_SESSION['base_url'] ?>/api/post/verificar_pagamentos.php" method="POST" class="hidden">
+    <input type="hidden" name="pack_id" id="verificar_pack_id">
+</form>
 
 <script>
   // Script para o modal de compra de créditos
@@ -190,8 +198,23 @@ function custoPorCredito($pack)
     // Event listener para o botão Confirmar Compra
     document.getElementById('confirmarCompraBtn').addEventListener('click', function () {
       const link = this.getAttribute('data-pack-link');
+      const packIdValue = document.getElementById('pack_id').value; // Pega o pack_id do input oculto existente
+
       if (link) {
         window.open(link, '_blank', 'width=800,height=600,resizable=yes,scrollbars=yes');
+
+        // Após abrir o link, ocultar o botão "Confirmar Compra" e mostrar "Pagamento Realizado"
+        setTimeout(() => {
+          const confirmarCompraBtn = document.getElementById('confirmarCompraBtn');
+          const pagamentoRealizadoBtn = document.getElementById('pagamentoRealizadoBtn');
+          
+          confirmarCompraBtn.classList.add('hidden');
+          pagamentoRealizadoBtn.classList.remove('hidden');
+
+          // Preencher o formulário oculto
+          const verificarPackId = document.getElementById('verificar_pack_id');
+          verificarPackId.value = packIdValue; // Atribui o ID do pacote ao input oculto do novo formulário
+        }, 1000); // Pequeno atraso para dar tempo de abrir a nova janela
       }
     });
 
