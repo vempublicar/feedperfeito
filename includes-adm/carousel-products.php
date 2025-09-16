@@ -42,6 +42,8 @@ $carouselProducts = $carouselProductModel->all();
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de
             Personalização
           </th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Download
+          </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
           </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações
@@ -88,6 +90,13 @@ $carouselProducts = $carouselProductModel->all();
                 ?>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
+                <?php if (!empty($product['download'])): ?>
+                  <a href="<?php echo htmlspecialchars($product['download']); ?>" target="_blank" class="text-blue-600 hover:text-blue-900">Download</a>
+                <?php else: ?>
+                  -
+                <?php endif; ?>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
                 <span
                   class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $product['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; ?>">
                   <?php echo htmlspecialchars($product['status']); ?>
@@ -107,7 +116,8 @@ $carouselProducts = $carouselProductModel->all();
                   data-page_count="<?php echo htmlspecialchars($product['page_count'] ?? ''); ?>"
                   data-status="<?php echo htmlspecialchars($product['status']); ?>"
                   data-unique_code="<?php echo htmlspecialchars($product['unique_code'] ?? ''); ?>"
-                  data-images="<?php echo htmlspecialchars($product['images'] ?? ''); ?>">Editar</a>
+                  data-images="<?php echo htmlspecialchars($product['images'] ?? ''); ?>"
+                  data-download="<?php echo htmlspecialchars($product['download'] ?? ''); ?>">Editar</a>
                 <form action="<?php echo $_SESSION['base_url']; ?>/api/delete/carousel_product.php" method="POST"
                   style="display:inline;"
                   onsubmit="return confirm('Tem certeza que deseja excluir este produto carrossel?');">
@@ -185,8 +195,18 @@ $carouselProducts = $carouselProductModel->all();
                 <option value="Destaque">Destaque</option>
                 <option value="Novidade">Novidade</option>
                 <option value="Promocao">Promoção</option>
+                <option value="Pronto">Pronto</option>
                 <!-- Outras opções podem ser adicionadas -->
               </select>
+            </div>
+
+            <!-- Campo de Upload de Download (inicialmente oculto) -->
+            <div id="add_download_field" class="hidden">
+              <label for="add_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
+              <input type="file" name="download" id="add_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
+              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
+              <div id="add_download_preview" class="mt-2 text-sm text-gray-600"></div>
             </div>
 
             <div>
@@ -315,8 +335,18 @@ $carouselProducts = $carouselProductModel->all();
                 <option value="Destaque">Destaque</option>
                 <option value="Novidade">Novidade</option>
                 <option value="Promocao">Promoção</option>
+                <option value="Pronto">Pronto</option>
                 <!-- Outras opções podem ser adicionadas -->
               </select>
+            </div>
+
+            <!-- Campo de Upload de Download (inicialmente oculto) -->
+            <div id="edit_download_field" class="hidden">
+              <label for="edit_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
+              <input type="file" name="download" id="edit_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
+              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
+              <div id="edit_download_preview" class="mt-2 text-sm text-gray-600"></div>
             </div>
 
             <div>
@@ -406,6 +436,10 @@ $carouselProducts = $carouselProductModel->all();
     const addCarouselProductForm = document.getElementById('addCarouselProductForm');
     const addImagesUploadField = document.getElementById('add_images_upload');
     const addImagePreviewsContainer = document.getElementById('add_image_previews');
+    const addTypeField = document.getElementById('add_type');
+    const addDownloadField = document.getElementById('add_download_field');
+    const addDownloadInput = document.getElementById('add_download');
+    const addDownloadPreview = document.getElementById('add_download_preview');
     let addUploadedImageFiles = [];
 
     // Referências para o modal de Edição
@@ -416,9 +450,12 @@ $carouselProducts = $carouselProductModel->all();
     const editMethodField = document.getElementById('edit_method');
     const editImagesUploadField = document.getElementById('edit_images_upload');
     const editImagePreviewsContainer = document.getElementById('edit_image_previews');
+    const editTypeField = document.getElementById('edit_type');
+    const editDownloadField = document.getElementById('edit_download_field');
+    const editDownloadInput = document.getElementById('edit_download');
+    const editDownloadPreview = document.getElementById('edit_download_preview');
     let editUploadedImageFiles = [];
 
-    // Funções para exibir previews de imagens (adaptadas para ambos os modais)
     // Armazena as URLs das imagens existentes que devem ser mantidas
     let existingImageUrlsToKeep = [];
 
@@ -469,8 +506,6 @@ $carouselProducts = $carouselProductModel->all();
 
     function handleFileSelect(event, container, isEditModal = false) {
       container.innerHTML = ''; // Limpa previews anteriores
-      // A lógica para manter imagens existentes e adicionar novas foi refeita na displayImagePreviews.
-      // Aqui, apenas lidamos com o upload de novas imagens.
       const currentUploadedFiles = isEditModal ? editUploadedImageFiles : addUploadedImageFiles;
       currentUploadedFiles.length = 0; // Limpa a lista de arquivos para upload
 
@@ -507,14 +542,45 @@ $carouselProducts = $carouselProductModel->all();
       }
     }
 
+    function handleDownloadFileSelect(event, previewContainer) {
+      previewContainer.innerHTML = '';
+      const file = event.target.files[0];
+      if (file) {
+        previewContainer.innerHTML = `<span>Arquivo selecionado: ${file.name}</span>`;
+      }
+    }
+
+    function toggleDownloadField(typeField, downloadField) {
+      if (typeField.value === 'Pronto') {
+        downloadField.classList.remove('hidden');
+      } else {
+        downloadField.classList.add('hidden');
+        // Limpar campo de download se o tipo não for 'Pronto'
+        const downloadInput = downloadField.querySelector('input[type="file"]');
+        if (downloadInput) {
+          downloadInput.value = '';
+        }
+        const downloadPreview = downloadField.querySelector('div');
+        if (downloadPreview) {
+          downloadPreview.innerHTML = '';
+        }
+      }
+    }
+
     // Event Listeners para o modal de Adição
     addImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, addImagePreviewsContainer, false));
+    addDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, addDownloadPreview));
+    addTypeField.addEventListener('change', () => toggleDownloadField(addTypeField, addDownloadField));
+
 
     openCarouselProductModalBtn.addEventListener('click', () => {
       addCarouselProductForm.reset();
       addImagePreviewsContainer.innerHTML = '';
       addUploadedImageFiles = [];
       addImagesUploadField.value = ''; // Resetar o campo de arquivo
+      addDownloadInput.value = ''; // Resetar o campo de download
+      addDownloadPreview.innerHTML = ''; // Limpar preview do download
+      toggleDownloadField(addTypeField, addDownloadField); // Esconder/mostrar baseado no tipo inicial
       addCarouselProductModal.classList.remove('hidden');
     });
 
@@ -536,11 +602,17 @@ $carouselProducts = $carouselProductModel->all();
 
     // Event Listeners para o modal de Edição
     editImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, editImagePreviewsContainer, true));
+    editDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, editDownloadPreview));
+    editTypeField.addEventListener('change', () => toggleDownloadField(editTypeField, editDownloadField));
+
 
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function (event) {
         editCarouselProductForm.reset(); // Limpa o formulário antes de preencher
         editImagesUploadField.value = ''; // Resetar o campo de arquivo
+        editDownloadInput.value = ''; // Resetar o campo de download
+        editDownloadPreview.innerHTML = ''; // Limpar preview do download
+
         editCarouselProductForm.action = '<?php echo $_SESSION['base_url']; ?>/api/post/update_carousel_product.php?id=' + (this.dataset.id || '');
         editMethodField.value = 'PUT';
 
@@ -549,7 +621,7 @@ $carouselProducts = $carouselProductModel->all();
         document.getElementById('edit_theme').value = this.dataset.theme || '';
         document.getElementById('edit_category').value = this.dataset.category || '';
         document.getElementById('edit_credits').value = this.dataset.credits || '';
-        document.getElementById('edit_type').value = this.dataset.type || '';
+        editTypeField.value = this.dataset.type || ''; // Usar editTypeField para triggerar o evento change
 
         document.getElementById('edit_description').value = this.dataset.description || '';
         document.getElementById('edit_page_count').value = this.dataset.page_count || 1;
@@ -571,6 +643,12 @@ $carouselProducts = $carouselProductModel->all();
         });
 
         displayImagePreviews(this.dataset.images, editImagePreviewsContainer, true);
+
+        // Preencher e exibir o preview do download, se houver
+        if (this.dataset.download) {
+          editDownloadPreview.innerHTML = `<span>Arquivo atual: <a href="${this.dataset.download}" target="_blank">${this.dataset.download.split('/').pop()}</a></span>`;
+        }
+        toggleDownloadField(editTypeField, editDownloadField); // Esconder/mostrar baseado no tipo do produto existente
 
         editCarouselProductModal.classList.remove('hidden');
       });

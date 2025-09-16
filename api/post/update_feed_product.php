@@ -18,6 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $uploadedImageUrls = []; // URLs das imagens recém-uploadeadas
     $existingImageUrlsFromForm = $_POST['existing_images'] ?? []; // URLs das imagens existentes que o usuário manteve no formulário
+    $downloadPath = null; // Caminho para o novo arquivo de download, se houver
 
     // Lógica para upload de imagens
     if (!empty($_FILES['images_upload']['name'][0])) {
@@ -54,6 +55,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
+    // Lógica para upload de arquivo de download
+    if (isset($_FILES['download']) && $_FILES['download']['error'] === UPLOAD_ERR_OK) {
+        $file = $_FILES['download'];
+        $uploadDir = '../../doc/prontos/feed/'; // Novo diretório para downloads de feed
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $fileName = uniqid() . '_' . basename($file['name']);
+        $destination = $uploadDir . $fileName;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            $downloadPath = 'doc/prontos/feed/' . $fileName;
+        } else {
+            $_SESSION['status_type'] = 'error';
+            $_SESSION['status_message'] = 'Erro ao fazer upload do arquivo de download.';
+            header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed');
+            exit();
+        }
+    }
+
     // Validação básica dos dados do formulário
     // O ID pode vir do $_REQUEST (GET ou POST) ou do $data
     $id = $_REQUEST['id'] ?? $data['id'] ?? null;
@@ -72,6 +94,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $imagesInDatabase = [];
     if ($existingProduct && !empty($existingProduct['images'])) {
         $imagesInDatabase = json_decode($existingProduct['images'], true);
+    }
+
+    // Se um novo arquivo de download foi enviado, remove o antigo
+    if ($downloadPath && $existingProduct && !empty($existingProduct['download'])) {
+        $oldDownloadPath = str_replace($_SESSION['base_url'] . '/', '../../', $existingProduct['download']);
+        if (file_exists($oldDownloadPath)) {
+            unlink($oldDownloadPath);
+        }
     }
 
     // Identificar e remover imagens que foram excluídas pelo usuário
@@ -101,7 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'description' => $data['description'] ?? null,
         'page_count' => $data['page_count'] ?? 1,
         'status' => $data['status'] ?? 'active',
-        'images' => json_encode($finalImageUrls) // Salva URLs das imagens como JSON
+        'images' => json_encode($finalImageUrls), // Salva URLs das imagens como JSON
+        'download' => $downloadPath ?? $existingProduct['download'] ?? null // Mantém o download existente se nenhum novo for enviado
     ];
 
     if ($feedProduct->update($id, $productData)) { // Alterado para $feedProduct->update

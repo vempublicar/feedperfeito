@@ -1,10 +1,12 @@
 <?php
 require_once __DIR__ . '/../../config/session.php';
 
-header('Content-Type: application/json');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Método de requisição inválido.']);
+    $_SESSION['status_type'] = 'error';
+    $_SESSION['status_message'] = 'Método de requisição inválido.';
+    $_SESSION['form_response']['pedido_id'] = $purchaseId;
+    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
     exit();
 }
 
@@ -12,12 +14,18 @@ $userId = $_POST['user_id'] ?? null;
 $purchaseId = $_POST['purchase_id'] ?? null;
 
 if (!$userId || !$purchaseId) {
-    echo json_encode(['success' => false, 'message' => 'Dados incompletos. user_id e purchase_id são obrigatórios.']);
+    $_SESSION['status_type'] = 'error';
+    $_SESSION['status_message'] = 'Dados incompletos. user_id e purchase_id são obrigatórios.';
+    $_SESSION['form_response']['pedido_id'] = $purchaseId;
+    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
     exit();
 }
 
 if (!isset($_FILES['zip_file']) || $_FILES['zip_file']['error'] !== UPLOAD_ERR_OK) {
-    echo json_encode(['success' => false, 'message' => 'Erro no upload do arquivo.']);
+    $_SESSION['status_type'] = 'error';
+    $_SESSION['status_message'] = 'Erro no upload do arquivo.';
+    $_SESSION['form_response']['pedido_id'] = $purchaseId;
+    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
     exit();
 }
 
@@ -30,7 +38,10 @@ $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
 // Validação básica do arquivo
 if ($fileExtension !== 'zip') {
-    echo json_encode(['success' => false, 'message' => 'Apenas arquivos ZIP são permitidos.']);
+    $_SESSION['status_type'] = 'error';
+    $_SESSION['status_message'] = 'Apenas arquivos ZIP são permitidos.';
+    $_SESSION['form_response']['pedido_id'] = $purchaseId;
+    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
     exit();
 }
 
@@ -40,7 +51,10 @@ $uploadDir = __DIR__ . "/../../uploads/entregas/{$userId}/{$purchaseId}/";
 // Cria o diretório se não existir
 if (!is_dir($uploadDir)) {
     if (!mkdir($uploadDir, 0777, true)) { // Permissão 0777 para fins de teste, ajustar em produção
-        echo json_encode(['success' => false, 'message' => 'Falha ao criar diretório de destino.']);
+        $_SESSION['status_type'] = 'error';
+        $_SESSION['status_message'] = 'Falha ao criar diretório de destino.';
+        $_SESSION['form_response']['pedido_id'] = $purchaseId;
+        header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
         exit();
     }
 }
@@ -78,17 +92,30 @@ if (move_uploaded_file($fileTmpPath, $destPath)) {
         $updated = $aprovacaoPedidoModel->update($aprovacaoId, $dataToUpdate);
 
         if ($updated) {
-            echo json_encode(['success' => true, 'message' => 'Arquivo ZIP enviado e registrado com sucesso!', 'path' => str_replace(__DIR__ . '/../..', '', $destPath)]);
+            $_SESSION['status_type'] = 'success';
+            $_SESSION['status_message'] = 'Arquivo ZIP enviado e registrado com sucesso!';
+            $_SESSION['form_response']['pedido_id'] = $purchaseId;
+            header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
+            exit();
         } else {
-            echo json_encode(['success' => false, 'message' => 'Arquivo ZIP enviado, mas falha ao registrar na aprovação.']);
+            $_SESSION['status_type'] = 'error';
+            $_SESSION['status_message'] = 'Arquivo ZIP enviado, mas falha ao registrar na aprovação.';
+            $_SESSION['form_response']['pedido_id'] = $purchaseId;
+            header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
+            exit();
         }
     } else {
-        // Se não encontrou aprovacaoPedido, pode ser que ainda não exista.
-        // Neste caso, você pode criar um novo ou apenas informar que a aprovação não foi encontrada.
-        // Por simplicidade, vamos apenas informar que não foi encontrada.
-        echo json_encode(['success' => false, 'message' => 'Arquivo ZIP enviado, mas aprovação de pedido não encontrada para registro.']);
+        $_SESSION['status_type'] = 'error';
+        $_SESSION['status_message'] = 'Arquivo ZIP enviado, mas aprovação de pedido não encontrada para registro.';
+        $_SESSION['form_response']['pedido_id'] = $purchaseId;
+        header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
+        exit();
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Falha ao mover o arquivo enviado.']);
+    $_SESSION['status_type'] = 'error';
+    $_SESSION['status_message'] = 'Falha ao mover o arquivo enviado.';
+    $_SESSION['form_response']['pedido_id'] = $purchaseId;
+    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
+    exit();
 }
 ?>

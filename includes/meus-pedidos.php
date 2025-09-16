@@ -65,7 +65,7 @@ function etapaIndex($etapaAtual) {
           <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 flex-wrap gap-4">
             <div>
               <h5 class="text-xl font-bold text-black mb-1"><?= htmlspecialchars($pedido['titulo']) ?></h5>
-              <p class="text-gray-500 text-sm">#<?= htmlspecialchars($pedido['id']) ?> • Atualizado em <?= date('d/m/Y H:i', strtotime($pedido['updated_at'])) ?></p>
+              <p class="text-gray-500 text-sm">• Atualizado em <?= date('d/m/Y H:i', strtotime($pedido['updated_at'])) ?></p>
             </div>
             <div class="mt-2 md:mt-0 flex justify-between relative">
                <form action="editar-pedidos" method="post" >

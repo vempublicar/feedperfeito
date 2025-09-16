@@ -1,10 +1,10 @@
 <?php
-header('Content-Type: application/json'); // Adiciona o cabeçalho para JSON
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
 require_once '../../config/database.php';
+require_once '../../config/session.php';
 require_once '../../models/AprovacaoPedido.php';
 require_once '../../models/Purchase.php';
 
@@ -42,11 +42,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (move_uploaded_file($_FILES['imagens']['tmp_name'][$key], $targetFilePath)) {
                         $imagensPaths[] = '/uploads/aprovacao/' . $fileName; // Caminho relativo para o banco de dados
                     } else {
-                        echo json_encode(['success' => false, 'message' => 'Erro ao fazer upload de uma das imagens.']);
+                        $_SESSION['status_type'] = 'error';
+                        $_SESSION['status_message'] = 'Erro ao fazer upload de uma das imagens.';
+                        $_SESSION['form_response']['pedido_id'] = $pedidoId; // Mantém o pedido_id na sessão
+                        header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
                         exit();
                     }
                 } else {
-                    echo json_encode(['success' => false, 'message' => 'Formato de arquivo não permitido.']);
+                    $_SESSION['status_type'] = 'error';
+                    $_SESSION['status_message'] = 'Formato de arquivo não permitido.';
+                    $_SESSION['form_response']['pedido_id'] = $pedidoId; // Mantém o pedido_id na sessão
+                    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
                     exit();
                 }
             }
@@ -55,13 +61,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // === Fim da Lógica de Upload ===
 
         // Validação básica
-        if (!$uidUsuarioPedido || !$uniqueCode) {
-            echo json_encode(['success' => false, 'message' => 'Dados obrigatórios faltando para registrar a aprovação de pedido.']);
+        if (!$uidUsuarioPedido || !$pedidoId) {
+            $_SESSION['status_type'] = 'error';
+            $_SESSION['status_message'] = 'Dados obrigatórios faltando para registrar a aprovação de pedido.';
+            $_SESSION['form_response']['pedido_id'] = $pedidoId; // Mantém o pedido_id na sessão
+            header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
             exit();
         }
 
         $aprovacaoPedidoModel = new AprovacaoPedido();
-        $existingAprovacao = $aprovacaoPedidoModel->getAprovacaoByUniqueCode($uniqueCode);
+        $existingAprovacao = $aprovacaoPedidoModel->getAprovacaoByid($pedidoId);
         //  echo 'existingAprovacao'. $existingAprovacao;
         $dataToSave = [
             'uid_usuario_pedido' => $uidUsuarioPedido,
@@ -108,19 +117,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     error_log("Erro ao atualizar o status da compra $pedidoId para $aprovacao.");
                 }
             }
-            echo json_encode(['success' => true, 'message' => 'Aprovação de pedido registrada/atualizada com sucesso!']);
+            $_SESSION['form_response'] = ['success' => true, 'message' => 'Aprovação de pedido registrada/atualizada com sucesso!', 'pedido_id' => $pedidoId];
+            header('Location: ../../admin/producao-pedidos');
             exit();
         } else {
-            echo json_encode(['success' => false, 'message' => 'Erro ao registrar/atualizar a aprovação de pedido.']);
+            $_SESSION['status_type'] = 'error';
+            $_SESSION['status_message'] = 'Erro ao registrar/atualizar a aprovação de pedido.';
+            $_SESSION['form_response']['pedido_id'] = $pedidoId; // Mantém o pedido_id na sessão
+            header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
             exit();
         }
 
     } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Erro interno do servidor: ' . $e->getMessage()]);
+        $_SESSION['status_type'] = 'error';
+        $_SESSION['status_message'] = 'Erro interno do servidor: ' . $e->getMessage();
+        $_SESSION['form_response']['pedido_id'] = $pedidoId; // Mantém o pedido_id na sessão
+        header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
         exit();
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Método de requisição não permitido.']);
+    $_SESSION['status_type'] = 'error';
+    $_SESSION['status_message'] = 'Método de requisição não permitido.';
+    $_SESSION['form_response']['pedido_id'] = $pedidoId; // Mantém o pedido_id na sessão
+    header('Location: ' . $_SESSION['base_url'] . '/admin/producao-pedidos');
     exit();
 }
 ?>

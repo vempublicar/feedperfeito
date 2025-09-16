@@ -13,7 +13,7 @@ $pedidos = [];
 if ($userId) {
     $purchaseModel = new Purchase();
     // Fetch all purchases for the current user, ordered by created_at descending
-    $userPurchases = $purchaseModel->query('purchases?user_id=eq.' . $userId . '&order=created_at.desc');
+    $userPurchases = $purchaseModel->query('purchases?select=*&user_id=eq.' . $userId . '&order=created_at.desc');
 
     if ($userPurchases && is_array($userPurchases)) {
         foreach ($userPurchases as $purchase) {
@@ -23,6 +23,7 @@ if ($userId) {
                 'etapa_atual' => ucfirst($purchase['status']), // Use the status from the database
                 'status' => $purchase['status'], // Adicionar o status original para estilização
                 'updated_at' => $purchase['updated_at'] ?? $purchase['created_at'],
+                'download' => $purchase['download'],
                 'unique_code' => $purchase['unique_code']
             ];
         }
@@ -72,6 +73,7 @@ function getStatusClass($status) {
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Atualização</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código Único</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Download</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -87,6 +89,19 @@ function getStatusClass($status) {
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= date('d/m/Y H:i', strtotime($pedido['updated_at'])) ?></td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($pedido['unique_code']) ?></td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <?php if (!empty($pedido['download'])): ?>
+                                        <form action="../api/get/download_product.php" method="POST">
+                                            <input type="hidden" name="file_path" value="<?= htmlspecialchars($pedido['download']); ?>">
+                                            <input type="hidden" name="purchase_id" value="<?= htmlspecialchars($pedido['id']); ?>">
+                                            <button type="submit" class="bg-blue-500 text-white py-1 px-2 rounded hover:bg-blue-600 text-xs">
+                                                <i class="fas fa-download mr-1"></i> Download
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>

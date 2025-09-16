@@ -28,6 +28,7 @@ $multipleProducts = $multipleProductModel->all();
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Utilização</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Créditos</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Páginas</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Download</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
         </tr>
@@ -65,8 +66,15 @@ $multipleProducts = $multipleProductModel->all();
               <td class="px-6 py-4"><?php echo htmlspecialchars($product['credits']); ?></td>
               <td class="px-6 py-4"><?php echo htmlspecialchars($product['page_count'] ?? '-'); ?></td>
               <td class="px-6 py-4">
+                <?php if (!empty($product['download'])): ?>
+                  <a href="<?php echo htmlspecialchars($product['download']); ?>" target="_blank" class="text-blue-600 hover:text-blue-900">Download</a>
+                <?php else: ?>
+                  -
+                <?php endif; ?>
+              </td>
+              <td class="px-6 py-4">
                 <span
-                  class="px-2 inline-flex text-xs font-semibold rounded-full 
+                  class="px-2 inline-flex text-xs font-semibold rounded-full
                   <?php echo $product['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'; ?>">
                   <?php echo htmlspecialchars($product['status']); ?>
                 </span>
@@ -84,8 +92,9 @@ $multipleProducts = $multipleProductModel->all();
                   data-images='<?php echo $product['images'] ? $product['images'] : "[]"; ?>'
                   data-type="<?php echo htmlspecialchars($product['type'] ?? ''); ?>"
                   data-utilization="<?php echo htmlspecialchars($product['utilization'] ?? ''); ?>"
-                  data-customization_types='<?php echo $product['customization_types'] ? $product['customization_types'] : "[]"; ?>'>
-                  Editar</a>
+                  data-customization_types='<?php echo $product['customization_types'] ? $product['customization_types'] : "[]"; ?>'
+                  data-download="<?php echo htmlspecialchars($product['download'] ?? ''); ?>">
+                   Editar</a>
                 <form action="<?php echo $_SESSION['base_url']; ?>/api/delete/feed_product.php" method="POST"
                   style="display:inline;" onsubmit="return confirm('Excluir este produto?');">
                   <input type="hidden" name="id" value="<?php echo htmlspecialchars($product['id']); ?>">
@@ -152,8 +161,18 @@ $multipleProducts = $multipleProductModel->all();
                 <option value="Destaque">Destaque</option>
                 <option value="Novidade">Novidade</option>
                 <option value="Promocao">Promoção</option>
+                <option value="Pronto">Pronto</option>
                 <!-- Outras opções podem ser adicionadas -->
               </select>
+            </div>
+
+            <!-- Campo de Upload de Download (inicialmente oculto) -->
+            <div id="add_download_field" class="hidden">
+              <label for="add_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
+              <input type="file" name="download" id="add_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
+              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
+              <div id="add_download_preview" class="mt-2 text-sm text-gray-600"></div>
             </div>
 
         <div>
@@ -245,7 +264,7 @@ $multipleProducts = $multipleProductModel->all();
       <button id="closeEditFeedProductModal" class="text-gray-400 hover:text-gray-500"><i
           class="fas fa-times"></i></button>
     </div>
-    <form id="editFeedProductForm" action="<?php echo $_SESSION['base_url']; ?>/api/post/update_feed_product.php"
+    <form id="editFeedProductForm" action="<?php echo $_SESSION['base_url']; ?>/api/post/update_multiple_product.php"
       method="POST" enctype="multipart/form-data">
       <input type="hidden" name="id" id="edit_feed_id">
       <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -289,8 +308,19 @@ $multipleProducts = $multipleProductModel->all();
                 <option value="Destaque">Destaque</option>
                 <option value="Novidade">Novidade</option>
                 <option value="Promocao">Promoção</option>
+                <option value="Pronto">Pronto</option>
+                <option value="Pronto">Pronto</option>
                 <!-- Outras opções podem ser adicionadas -->
               </select>
+            </div>
+
+            <!-- Campo de Upload de Download (inicialmente oculto) -->
+            <div id="edit_download_field" class="hidden">
+              <label for="edit_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
+              <input type="file" name="download" id="edit_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
+              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
+              <div id="edit_download_preview" class="mt-2 text-sm text-gray-600"></div>
             </div>
 
         <div>
@@ -377,6 +407,10 @@ $multipleProducts = $multipleProductModel->all();
     const addFeedProductForm = document.getElementById('addFeedProductForm');
     const addImagesUploadField = document.getElementById('add_images_upload');
     const addImagePreviewsContainer = document.getElementById('add_image_previews');
+    const addTypeField = document.getElementById('add_type');
+    const addDownloadField = document.getElementById('add_download_field');
+    const addDownloadInput = document.getElementById('add_download');
+    const addDownloadPreview = document.getElementById('add_download_preview');
 
     // Referências para o modal de Edição
     const editFeedProductModal = document.getElementById('editFeedProductModal');
@@ -385,6 +419,10 @@ $multipleProducts = $multipleProductModel->all();
     const editFeedIdField = document.getElementById('edit_feed_id');
     const editImagesUploadField = document.getElementById('edit_images_upload');
     const editImagePreviewsContainer = document.getElementById('edit_image_previews');
+    const editTypeField = document.getElementById('edit_feed_type'); // Reutilizando a ID, mas deveria ser edit_multiple_type
+    const editDownloadField = document.getElementById('edit_download_field');
+    const editDownloadInput = document.getElementById('edit_download');
+    const editDownloadPreview = document.getElementById('edit_download_preview');
     let editUploadedImageFiles = [];
     let addUploadedImageFiles = []; // Variável para armazenar os arquivos de imagem para o modal de adição
 
@@ -481,13 +519,43 @@ $multipleProducts = $multipleProductModel->all();
       }
     }
 
+    function handleDownloadFileSelect(event, previewContainer) {
+      previewContainer.innerHTML = '';
+      const file = event.target.files[0];
+      if (file) {
+        previewContainer.innerHTML = `<span>Arquivo selecionado: ${file.name}</span>`;
+      }
+    }
+
+    function toggleDownloadField(typeField, downloadField) {
+      if (typeField.value === 'Pronto') {
+        downloadField.classList.remove('hidden');
+      } else {
+        downloadField.classList.add('hidden');
+        // Limpar campo de download se o tipo não for 'Pronto'
+        const downloadInput = downloadField.querySelector('input[type="file"]');
+        if (downloadInput) {
+          downloadInput.value = '';
+        }
+        const downloadPreview = downloadField.querySelector('div');
+        if (downloadPreview) {
+          downloadPreview.innerHTML = '';
+        }
+      }
+    }
+
     // Event Listeners para o modal de Adição
     addImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, addImagePreviewsContainer, false));
+    addDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, addDownloadPreview));
+    addTypeField.addEventListener('change', () => toggleDownloadField(addTypeField, addDownloadField));
 
     openFeedProductModalBtn.addEventListener('click', () => {
       addFeedProductForm.reset();
       addImagePreviewsContainer.innerHTML = '';
       addImagesUploadField.value = '';
+      addDownloadInput.value = ''; // Resetar o campo de download
+      addDownloadPreview.innerHTML = ''; // Limpar preview do download
+      toggleDownloadField(addTypeField, addDownloadField); // Esconder/mostrar baseado no tipo inicial
       addFeedProductModal.classList.remove('hidden');
     });
 
@@ -509,19 +577,23 @@ $multipleProducts = $multipleProductModel->all();
 
     // --- Modal de Edição ---
     editImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, editImagePreviewsContainer, true));
+    editDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, editDownloadPreview));
+    editTypeField.addEventListener('change', () => toggleDownloadField(editTypeField, editDownloadField));
 
     document.querySelectorAll('.edit-btn').forEach(button => {
       button.addEventListener('click', function () {
         editFeedProductForm.reset();
         editImagePreviewsContainer.innerHTML = '';
         editImagesUploadField.value = ''; // Resetar o campo de arquivo
+        editDownloadInput.value = ''; // Resetar o campo de download
+        editDownloadPreview.innerHTML = ''; // Limpar preview do download
 
         editFeedIdField.value = this.dataset.id || '';
         document.getElementById('edit_feed_name').value = this.dataset.name || '';
         document.getElementById('edit_feed_theme').value = this.dataset.theme || '';
         document.getElementById('edit_feed_category').value = this.dataset.category || '';
         document.getElementById('edit_feed_credits').value = this.dataset.credits || '';
-        document.getElementById('edit_feed_type').value = this.dataset.type || '';
+        editTypeField.value = this.dataset.type || ''; // Usar editTypeField para triggerar o evento change
         document.getElementById('edit_feed_utilization').value = this.dataset.utilization || '';
         document.getElementById('edit_feed_page_count').value = this.dataset.page_count || 1;
         document.getElementById('edit_feed_status').value = this.dataset.status || 'active';
@@ -536,6 +608,12 @@ $multipleProducts = $multipleProductModel->all();
         // mostra imagens já salvas
         displayImagePreviews(this.dataset.images, editImagePreviewsContainer, true);
 
+        // Preencher e exibir o preview do download, se houver
+        if (this.dataset.download) {
+          editDownloadPreview.innerHTML = `<span>Arquivo atual: <a href="${this.dataset.download}" target="_blank">${this.dataset.download.split('/').pop()}</a></span>`;
+        }
+        toggleDownloadField(editTypeField, editDownloadField); // Esconder/mostrar baseado no tipo do produto existente
+
         editFeedProductModal.classList.remove('hidden');
       });
     });
@@ -545,6 +623,8 @@ $multipleProducts = $multipleProductModel->all();
       editFeedProductForm.reset();
       editImagePreviewsContainer.innerHTML = '';
       editImagesUploadField.value = '';
+      editDownloadInput.value = '';
+      editDownloadPreview.innerHTML = '';
     });
 
     window.addEventListener('click', (event) => {

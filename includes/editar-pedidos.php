@@ -40,14 +40,14 @@ if ($uniqueCode) {
     }
 
     // Se não encontrou, tenta buscar em multiple_products (descomente quando tiver o modelo)
-    // if (!$product && strpos($uniqueCode, 'multiple_') === 0) {
-    //     $multipleProductModel = new MultipleProduct();
-    //     $products = $multipleProductModel->where(['unique_code' => $uniqueCode]);
-    //     if (!empty($products)) {
-    //         $product = $products[0];
-    //         $productType = 'Multiple';
-    //     }
-    // }
+    if (!$product && strpos($uniqueCode, 'multiple_') === 0) {
+        $multipleProductModel = new MultipleProduct();
+        $products = $multipleProductModel->where(['unique_code' => $uniqueCode]);
+        if (!empty($products)) {
+            $product = $products[0];
+            $productType = 'Multiple';
+        }
+    }
 }
 
 $purchase = null;
@@ -61,7 +61,7 @@ if ($pedidoId) {
         $pedidoId = $purchase['id']; // Obtém o ID do pedido
 
         $aprovacaoPedidoModel = new AprovacaoPedido();
-        $aprovacao = $aprovacaoPedidoModel->getAprovacaoByUniqueCode($pedidoId);
+        $aprovacao = $aprovacaoPedidoModel->getAprovacaoByid($pedidoId);
         if (!empty($aprovacao)) {
             $aprovacaoPedido = $aprovacao;
         }
@@ -296,8 +296,23 @@ function etapaIndex($etapaAtual)
                         </div>
                     </div>
                 </div>
+            <?php elseif (empty($aprovacaoPedido) && $currentStatus === 'Disponível'): ?>
+                <div class="flex justify-center mb-6">
+                    <form id="downloadForm_<?= htmlspecialchars($purchase['id']) ?>" action="../api/get/download_product.php" method="POST" style="display: none;">
+                        <input type="hidden" name="file_path" value="<?= htmlspecialchars($product['download']) ?>">
+                        <input type="hidden" name="purchase_id" value="<?= htmlspecialchars($purchase['id']) ?>">
+                    </form>
+                    <button type="button"
+                        class="bg-green-500 text-white py-2 px-4 rounded font-medium hover:bg-green-600 transition download-product-btn"
+                        data-purchase-id="<?= htmlspecialchars($purchase['id']) ?>"
+                        data-new-status="Entregue"
+                        data-form-id="downloadForm_<?= htmlspecialchars($purchase['id']) ?>"
+                        data-download-path="<?= htmlspecialchars($product['download']) ?>">
+                        Download do Produto
+                    </button>
+                </div>
             <?php else: ?>
-                <p class="text-gray-700">Nenhum registro de aprovação encontrado para este pedido.</p>
+                <p class="text-gray-700 text-center">Nenhum registro de aprovação encontrado para este pedido.</p>
             <?php endif; ?>
 
         <?php else: ?>
@@ -510,12 +525,14 @@ function etapaIndex($etapaAtual)
     // Lógica AJAX para o botão de download do produto
     document.querySelectorAll('.download-product-btn').forEach(button => {
         button.addEventListener('click', async (event) => {
-            event.preventDefault(); // Previne o download imediato
-            console.log('Botão de download clicado!'); // Adicionar este log
+            event.preventDefault(); // Previne o comportamento padrão do link
+            console.log('Botão de download clicado!');
             const purchaseId = event.target.dataset.purchaseId;
             const newStatus = event.target.dataset.newStatus;
-            const downloadUrl = event.target.href; // URL original do download
- 
+            const downloadPath = event.target.dataset.downloadPath; // Pega o caminho do download
+            const formId = event.target.dataset.formId;
+            const downloadForm = document.getElementById(formId);
+
             try {
                 const response = await fetch('../api/post/update_purchase_status.php', {
                     method: 'POST',
@@ -524,17 +541,20 @@ function etapaIndex($etapaAtual)
                     },
                     body: JSON.stringify({
                         purchase_id: purchaseId,
-                        new_status: newStatus
+                        new_status: newStatus,
+                        download_path: downloadPath
                     })
                 });
-                console.log('Resposta da requisição:', response); // Debugging
- 
+
                 const result = await response.json();
-                console.log('Resultado da requisição:', result); // Debugging
- 
+
                 if (result.success) {
-                    // Se a atualização do status for bem-sucedida, inicia o download
-                    window.location.href = downloadUrl;
+                    // Se a atualização do status for bem-sucedida, submete o formulário de download
+                    if (downloadForm) {
+                        downloadForm.submit();
+                    } else {
+                        alert('Erro: Formulário de download não encontrado.');
+                    }
                 } else {
                     alert('Erro ao registrar download: ' + result.message);
                 }
