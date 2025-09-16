@@ -69,7 +69,7 @@
           <h1 class="text-4xl font-bold text-black mb-4">
              <span class="font-light">Faça o login no</span> Seu Painel
           </h1>
-          <p class="text-gray-600">Tarefas profissionais e produção de conteúdo de uma maneira inovadora. Economize tempo e dinheiro.</p>
+          <p class="text-gray-600">Tarefas profissionais, produção de conteúdo e um modelo inovador.<br> Economize tempo e dinheiro.</p>
         </div>
 
         <div class="flex flex-col md:flex-row items-center justify-center gap-12">
@@ -127,7 +127,7 @@
                 </div>
                 
                 <div class="text-center">
-                  <a href="<?php echo $_SESSION['base_url']; ?>/forgot-password" class="text-black hover:text-gray-600 underline">Esqueci a senha</a>
+                  <a href="<?php echo $_SESSION['base_url']; ?>/forgot-password.php" class="text-black hover:text-gray-600 underline">Esqueci a senha</a>
                   <span class="mx-2 text-gray-400">|</span>
                   <a href="<?php echo $_SESSION['base_url']; ?>/register" class="text-black hover:text-gray-600 underline">Criar Conta</a>
                 </div>
@@ -145,7 +145,7 @@
   </main>
 
   <!-- CTA Section -->
-  <section class="py-12 bg-gray-100">
+  <!-- <section class="py-12 bg-gray-100">
     <div class="container mx-auto px-4">
       <div class="flex flex-col md:flex-row justify-between items-center">
         <div class="mb-6 md:mb-0">
@@ -161,17 +161,14 @@
         </div>
       </div>
     </div>
-  </section>
+  </section> -->
 
   <!-- Footer -->
   <footer class="bg-white py-8 border-t border-gray-200">
     <div class="container mx-auto px-4">
       <div class="text-center">
         <p class="text-gray-600">
-          Copyright © 2036 <a href="<?php echo $_SESSION['base_url']; ?>/" class="text-black hover:text-gray-600">Tale SEO Agency</a>. All rights reserved.
-          <br>
-          Design: <a href="https://templatemo.com" target="_blank" class="text-black hover:text-gray-600">TemplateMo</a>
-          Distribution: <a href="https://themewagon.com" class="text-black hover:text-gray-600">ThemeWagon</a>
+          Copyright © 2036 <a href="<?php echo $_SESSION['base_url']; ?>/" class="text-black hover:text-gray-600">FeedPerfeito</a>, desenvolvido por <a href="https://vempublicar.com" class="text-black hover:text-gray-600">VemPublicar</a>. All rights reserved.
         </p>
       </div>
     </div>

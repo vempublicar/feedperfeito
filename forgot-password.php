@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FeedPerfeito - Criar Conta</title>
+  <title>FeedPerfeito - Esqueci a Senha</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script>
@@ -27,10 +27,10 @@
 <body class="bg-white h-screen flex flex-col">
   <?php
   require_once 'config/session.php';
-  $error = $_SESSION['register_error'] ?? '';
-  $success = $_SESSION['register_success'] ?? '';
-  unset($_SESSION['register_error']);
-  unset($_SESSION['register_success']);
+  $error = $_SESSION['reset_error'] ?? '';
+  $success = $_SESSION['reset_success'] ?? '';
+  unset($_SESSION['reset_error']);
+  unset($_SESSION['reset_success']);
   ?>
   
   <!-- Header -->
@@ -45,7 +45,7 @@
         <nav class="hidden md:block">
           <ul class="flex space-x-6">
             <li><a href="<?php echo $_SESSION['base_url']; ?>/" class="text-black hover:text-gray-600">Home</a></li>
-          </ul>
+           </ul>
         </nav>
         <button class="md:hidden text-black">
           <i class="fas fa-bars"></i>
@@ -62,18 +62,18 @@
           <h6 class="text-lg text-black mb-2">SUA AGÊNCIA ON DEMAND</h6>
           <div class="w-24 h-0.5 bg-black mx-auto mb-4"></div>
           <h1 class="text-4xl font-bold text-black mb-4">
-             Crie sua <span class="font-light">Conta</span>
+             <span class="font-light">Redefina sua</span> Senha
           </h1>
-          <p class="text-gray-600">Tarefas profissionais, produção de conteúdo e um modelo inovador.<br> Economize tempo e dinheiro.</p>
+          <p class="text-gray-600">Informe seu e-mail para receber as instruções de redefinição de senha.</p>
         </div>
 
         <div class="flex flex-col md:flex-row items-center justify-center gap-12">
-          <!-- Registration Form -->
+          <!-- Forgot Password Form -->
           <div class="w-full md:w-1/2">
             <div class="bg-white rounded-lg shadow-lg p-8">
               <div class="mb-8">
                 <h2 class="text-2xl font-bold text-black mb-2">
-                  Criar <span class="font-light">Conta</span>
+                  Esqueci <span class="font-light">a Senha</span>
                 </h2>
                 <div class="w-16 h-0.5 bg-black mb-6"></div>
                 
@@ -90,54 +90,16 @@
                 <?php endif; ?>
               </div>
               
-              <form id="register-form" action="api/register.php" method="post">
+              <form id="forgot-password-form" action="api/post/request_password_reset.php" method="post">
                 <div class="mb-6">
                   <input 
                     type="email" 
                     class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" 
-                    name="email"
-                    id="email"
-                    placeholder="E-mail"
+                    name="email" 
+                    id="email" 
+                    placeholder="E-mail" 
                     required
                   >
-                </div>
-                
-                <div class="mb-6">
-                  <input 
-                    type="password" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" 
-                    name="password"
-                    id="password"
-                    placeholder="Senha"
-                    required
-                    minlength="6"
-                  >
-                </div>
-                
-                <div class="mb-6">
-                  <input 
-                    type="password" 
-                    class="w-full px-4 py-3 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent" 
-                    name="confirm_password"
-                    id="confirm_password"
-                    placeholder="Confirmar Senha"
-                    required
-                  >
-                </div>
-                
-                <div class="mb-6">
-                  <div class="flex items-center">
-                    <input 
-                      type="checkbox" 
-                      id="terms" 
-                      name="terms" 
-                      class="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
-                      required
-                    >
-                    <label for="terms" class="ml-2 block text-sm text-gray-700">
-                      Eu concordo com os <a href="/terms" class="text-black underline">Termos e Condições</a>
-                    </label>
-                  </div>
                 </div>
                 
                 <div class="mb-6">
@@ -146,12 +108,12 @@
                     id="form-submit" 
                     class="w-full bg-black text-white py-3 px-4 rounded font-semibold hover:bg-gray-800 transition duration-300"
                   >
-                    Criar Conta
+                    Enviar Link de Redefinição
                   </button>
                 </div>
                 
                 <div class="text-center">
-                  <a href="<?php echo $_SESSION['base_url']; ?>/login" class="text-black hover:text-gray-600 underline">Já tem uma conta? Faça login</a>
+                  <a href="<?php echo $_SESSION['base_url']; ?>/login" class="text-black hover:text-gray-600 underline">Lembrei a senha, fazer login</a>
                 </div>
               </form>
             </div>
@@ -159,7 +121,7 @@
           
           <!-- Image -->
           <div class="w-full md:w-1/2 hidden md:block">
-            <img src="<?php echo $_SESSION['base_url']; ?>/cel3d.png" class="w-full h-96" alt="Imagem de Registro">
+            <img src="<?php echo $_SESSION['base_url']; ?>/login.svg" class="w-full h-96" alt="Imagem de Redefinição de Senha">
           </div>
         </div>
       </div>
