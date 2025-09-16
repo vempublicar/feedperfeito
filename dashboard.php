@@ -200,7 +200,10 @@ if (!empty($user['avatar_url']) && file_exists('uploads/avatars/' . htmlspecialc
                         <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/personalize" class="text-black hover:text-gray-600 flex items-center">
                             <i class="fas fa-sliders-h mr-2"></i> Personalizar
                         </a>
-                        <div class="flex items-center bg-gray-100 px-3 py-2 rounded">
+                        <form id="verificarPagamentosFormNavbar" action="api/post/verificar_pagamentos.php" method="POST" class="hidden">
+                            <input type="hidden" name="action_source" value="navbar_credits">
+                        </form>
+                        <div class="flex items-center bg-gray-100 px-3 py-2 rounded cursor-pointer" onclick="document.getElementById('verificarPagamentosFormNavbar').submit();">
                             <i class="fas fa-coins text-yellow-500 mr-2"></i>
                             <span class="font-semibold text-black" id="credit-value"><?php echo $_SESSION['user_credits']; ?></span>
                         </div>
