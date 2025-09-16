@@ -6,7 +6,7 @@
       </div>
       <div>
         <p class="text-gray-500">Pedidos Ativos</p>
-        <p class="text-2xl font-bold text-black"><?php echo count($orders); ?></p>
+        <p class="text-2xl font-bold text-black">0</p>
       </div>
     </div>
   </div>
@@ -33,11 +33,11 @@
         <p class="text-2xl font-bold text-black">
           <?php
           $pendingApprovals = 0;
-          foreach ($orders as $order) {
-            if ($order['status'] == 'in_approval') {
-              $pendingApprovals++;
-            }
-          }
+          // foreach ($orders as $order) {
+          //   if ($order['status'] == 'in_approval') {
+          //     $pendingApprovals++;
+          //   }
+          // }
           echo $pendingApprovals;
           ?>
         </p>
@@ -58,7 +58,7 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Atualizado</th>
         </tr>
       </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
+      <!-- <tbody class="bg-white divide-y divide-gray-200">
         <?php
         $displayedOrders = 0;
         foreach ($orders as $order):
@@ -109,14 +109,14 @@
           </td>
         </tr>
         <?php endif; ?>
-      </tbody>
+      </tbody> -->
     </table>
   </div>
 </div>
 
 <div class="bg-white rounded-lg shadow-md p-6">
   <h3 class="text-lg font-bold text-black mb-4">Últimos Conteúdos</h3>
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  <!-- <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     <?php
     $displayedTemplates = 0;
     foreach ($templates as $template):
@@ -141,5 +141,5 @@
       Nenhum conteúdo disponível
     </div>
     <?php endif; ?>
-  </div>
+  </div> -->
 </div>

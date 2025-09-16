@@ -26,11 +26,12 @@ $active_section = $_GET['section'] ?? 'inicio';
 // Lógica para verificar e entregar produtos digitais não entregues
 $undelivered_products = get_undelivered_products($_SESSION['user_email']); // Usa $user['email'] do banco
 
+
 // Inicializa CreditManager
 $creditManager = new CreditManager();
 // Processa produtos não entregues
 foreach ($undelivered_products as $product) {
-    if ($product['is_delivered'] === null) {
+    if ($product['is_delivered'] === false) {
         $creditsToAdd = 0;
 
         // Busca os pacotes de crédito para verificar o SKU
@@ -67,25 +68,25 @@ if (!empty($user['avatar_url']) && file_exists('uploads/avatars/' . htmlspecialc
     $avatarUrl = $_SESSION['base_url'] . '/uploads/avatars/' . htmlspecialchars($user['avatar_url']);
 }
 
-// Get user orders
-$orderModel = new UserOrder();
-$orders = $orderModel->getOrdersByUser($user['id']); // Usa $user['id'] do banco
+// // Get user orders
+// $orderModel = new UserOrder();
+// $orders = $orderModel->getOrdersByUser($user['id']); // Usa $user['id'] do banco
 
-// Get content templates
-$templateModel = new ContentTemplate();
-$templates = $templateModel->getActiveTemplates();
+// // Get content templates
+// $templateModel = new ContentTemplate();
+// $templates = $templateModel->getActiveTemplates();
 
-// Get credit packages
-$packageModel = new CreditPackage();
-$packages = $packageModel->getActivePackages();
+// // Get credit packages
+// $packageModel = new CreditPackage();
+// $packages = $packageModel->getActivePackages();
 
-// Get promotions
-$promotionModel = new Promotion();
-$promotions = $promotionModel->getActivePromotions();
+// // Get promotions
+// $promotionModel = new Promotion();
+// $promotions = $promotionModel->getActivePromotions();
 
-// Get services
-$serviceModel = new Service();
-$services = $serviceModel->getActiveServices();
+// // Get services
+// $serviceModel = new Service();
+// $services = $serviceModel->getActiveServices();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -124,7 +125,6 @@ $services = $serviceModel->getActiveServices();
     <?php endif; ?>
 
     <div class="relative min-h-screen md:flex">
-
         <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
         <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white shadow-md w-64 transform transition-transform duration-300 ease-in-out z-30 -translate-x-full md:translate-x-0">
