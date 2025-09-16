@@ -8,6 +8,7 @@ require_once '../../models/FeedProduct.php'; // Alterado para FeedProduct.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = $_POST;
     $uploadedImageUrls = [];
+    $downloadPath = null;
 
     // Lógica para upload de imagens
     if (!empty($_FILES['images_upload']['name'][0])) {
@@ -42,6 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed'); // Alterado para produtos-feed
             exit();
         }
+    
+        // Lógica para upload de arquivo de download
+        if (isset($_FILES['download']) && $_FILES['download']['error'] === UPLOAD_ERR_OK) {
+            $file = $_FILES['download'];
+            $uploadDir = '../../doc/prontos/feed/'; // Novo diretório para downloads de feed
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+    
+            $fileName = uniqid() . '_' . basename($file['name']);
+            $destination = $uploadDir . $fileName;
+    
+            if (move_uploaded_file($file['tmp_name'], $destination)) {
+                $downloadPath = 'doc/prontos/feed/' . $fileName;
+            } else {
+                $_SESSION['status_type'] = 'error';
+                $_SESSION['status_message'] = 'Erro ao fazer upload do arquivo de download.';
+                header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed');
+                exit();
+            }
+        }
     }
 
     // Validação básica dos dados do formulário
@@ -68,7 +90,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'page_count' => $data['page_count'] ?? 1,
         'status' => $data['status'] ?? 'active',
         'unique_code' => uniqid('feed_'), // Gerar um código único para feed
-        'images' => json_encode($uploadedImageUrls) // Salva URLs das imagens como JSON
+        'images' => json_encode($uploadedImageUrls), // Salva URLs das imagens como JSON
+        'download' => $downloadPath // Salva o caminho do arquivo de download
     ];
 
     if ($feedProduct->create($productData)) { // Alterado para $feedProduct->create

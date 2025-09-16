@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $creditsUsed = $_POST['credits'] ?? null;
         $observacoes = $_POST['observacoes'] ?? null;
         $customization = json_decode($_POST['customization'] ?? '{}', true);
+        $productType = $_POST['productType'] ?? null;
 
         // Validação básica
         if (!$productId || !$productName || !$uniqueCode || !$creditsUsed) {
@@ -51,7 +52,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'unique_code' => $uniqueCode,
             'credits_used' => $creditsUsed,
             'observacoes' => $observacoes,
-            'customization_options' => json_encode($customization) // Supabase espera JSON string
+            'customization_options' => json_encode($customization), // Supabase espera JSON string
+            'status' => ($productType === 'Pronto') ? 'Disponível' : 'pending' // Definir status baseado no tipo do produto
         ];
 
         // Adiciona product_id se não for um UUID

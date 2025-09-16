@@ -285,7 +285,7 @@ $imagens_empresa_saved = load_json_data($user_doc_path . '/imagens_empresa.json'
                             <?php if (!empty($logotipos_saved)): ?>
                                 <?php foreach ($logotipos_saved as $logo): ?>
                                     <div class="relative w-24 h-24 border rounded overflow-hidden">
-                                        <img src="/feedperfeito/doc/<?= htmlspecialchars($uid_usuario) ?>/logotipos/<?= htmlspecialchars($logo) ?>" alt="Logotipo" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'logotipos')">
+                                        <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario) ?>/logotipos/<?= htmlspecialchars($logo) ?>" alt="Logotipo" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'logotipos')">
                                         <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg p-1 text-xs" onclick="removeImage(this, 'logotipos', '<?= htmlspecialchars($logo) ?>')">X</button>
                                     </div>
                                 <?php endforeach; ?>
@@ -322,7 +322,7 @@ $imagens_empresa_saved = load_json_data($user_doc_path . '/imagens_empresa.json'
                             <?php if (!empty($imagens_artes_saved)): ?>
                                 <?php foreach ($imagens_artes_saved as $img): ?>
                                     <div class="relative w-24 h-24 border rounded overflow-hidden">
-                                        <img src="/feedperfeito/doc/<?= htmlspecialchars($uid_usuario) ?>/imagens_artes/<?= htmlspecialchars($img) ?>" alt="Imagem para Arte" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'imagens_artes')">
+                                        <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario) ?>/imagens_artes/<?= htmlspecialchars($img) ?>" alt="Imagem para Arte" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'imagens_artes')">
                                         <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg p-1 text-xs" onclick="removeImage(this, 'imagens_artes', '<?= htmlspecialchars($img) ?>')">X</button>
                                     </div>
                                 <?php endforeach; ?>
@@ -359,7 +359,7 @@ $imagens_empresa_saved = load_json_data($user_doc_path . '/imagens_empresa.json'
                             <?php if (!empty($elementos_design_saved)): ?>
                                 <?php foreach ($elementos_design_saved as $elem): ?>
                                     <div class="relative w-24 h-24 border rounded overflow-hidden">
-                                        <img src="/feedperfeito/doc/<?= htmlspecialchars($uid_usuario) ?>/elementos_design/<?= htmlspecialchars($elem) ?>" alt="Elemento de Design" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'elementos_design')">
+                                        <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario) ?>/elementos_design/<?= htmlspecialchars($elem) ?>" alt="Elemento de Design" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'elementos_design')">
                                         <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg p-1 text-xs" onclick="removeImage(this, 'elementos_design', '<?= htmlspecialchars($elem) ?>')">X</button>
                                     </div>
                                 <?php endforeach; ?>
@@ -396,7 +396,7 @@ $imagens_empresa_saved = load_json_data($user_doc_path . '/imagens_empresa.json'
                             <?php if (!empty($imagens_empresa_saved)): ?>
                                 <?php foreach ($imagens_empresa_saved as $img): ?>
                                     <div class="relative w-24 h-24 border rounded overflow-hidden">
-                                        <img src="/feedperfeito/doc/<?= htmlspecialchars($uid_usuario) ?>/imagens_empresa/<?= htmlspecialchars($img) ?>" alt="Imagem da Empresa" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'imagens_empresa')">
+                                        <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario) ?>/imagens_empresa/<?= htmlspecialchars($img) ?>" alt="Imagem da Empresa" class="w-full h-full object-cover cursor-pointer" onclick="openImageModal(this.src, 'imagens_empresa')">
                                         <button type="button" class="absolute top-0 right-0 bg-red-500 text-white rounded-bl-lg p-1 text-xs" onclick="removeImage(this, 'imagens_empresa', '<?= htmlspecialchars($img) ?>')">X</button>
                                     </div>
                                 <?php endforeach; ?>

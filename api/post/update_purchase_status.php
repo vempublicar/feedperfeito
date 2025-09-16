@@ -17,6 +17,7 @@ $purchaseId = $input['purchase_id'] ?? null;
 $newStatus = $input['new_status'] ?? null;
 $uidUsuarioPedido = $input['uid_usuario_pedido'] ?? null;
 $uniqueCode = $input['unique_code'] ?? null;
+$downloadPath = $input['download_path'] ?? null;
 
 if (!$purchaseId || !$newStatus) {
     echo json_encode(['success' => false, 'message' => 'Dados incompletos. purchase_id e new_status são obrigatórios.']);
@@ -25,8 +26,12 @@ if (!$purchaseId || !$newStatus) {
 
 $purchaseModel = new Purchase();
 
-// Atualiza o status do pedido
-$updated = $purchaseModel->update($purchaseId, ['status' => $newStatus]);
+// Atualiza o status do pedido e o caminho de download
+$dataToUpdate = ['status' => $newStatus];
+if ($downloadPath !== null) {
+    $dataToUpdate['download'] = $downloadPath;
+}
+$updated = $purchaseModel->update($purchaseId, $dataToUpdate);
 
 if ($updated) {
     if ($newStatus === 'confirmado') {

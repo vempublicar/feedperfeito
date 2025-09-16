@@ -54,11 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // If we get here, there was an error
     // Store error in session and redirect back to login
     $_SESSION['login_error'] = $error;
-    // header('Location: ' . $_SESSION['base_url'] . '/login');
+    header('Location: ' . $_SESSION['base_url'] . '/login');
     exit();
 } else {
     // Not a POST request, redirect to login page
-    // header('Location: ' . $_SESSION['base_url'] . '/login');
+    header('Location: ' . $_SESSION['base_url'] . '/login');
     exit();
 }
 ?>

@@ -32,7 +32,7 @@ class AprovacaoPedido extends BaseModel
         return $this->create($data);
     }
 
-    public function getAprovacaoByUniqueCode($pedidoId)
+    public function getAprovacaoByid($pedidoId)
     {
         $result = $this->where(['pedido_id' => $pedidoId]);
         if (is_array($result) && count($result) > 0) {

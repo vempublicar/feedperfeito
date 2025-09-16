@@ -15,6 +15,24 @@ if (session_status() == PHP_SESSION_NONE) {
 requireUserLogin();
 
 $pedidoId = $_POST['pedido_id'] ?? null;
+
+// Verifica se há dados de resposta na sessão
+if (isset($_SESSION['form_response'])) {
+    $response = $_SESSION['form_response'];
+    unset($_SESSION['form_response']); // Limpa a sessão após o uso
+
+    // Se o pedido_id veio da sessão, ele tem prioridade
+    if (isset($response['pedido_id'])) {
+        $pedidoId = $response['pedido_id'];
+    }
+
+}
+if ($pedidoId == null) {
+    $pedidoId = $_SESSION['ultimo_pedido_id'];
+}else{
+    $_SESSION['ultimo_pedido_id'] = $pedidoId;
+}
+
 $product = null;
 $productType = null;
 $purchase = null;
@@ -91,7 +109,7 @@ function etapaIndex($etapaAtual)
             return 0; // Default to 'Pendente'
     }
 }
-
+print_r($aprovacao);
 ?>
 
 <div class="bg-white rounded-lg shadow-md mb-6">
@@ -153,46 +171,32 @@ function etapaIndex($etapaAtual)
                     </div>
                 <?php endforeach; ?>
             </div>
-            <!-- Conteúdo em colunas -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <?php
+                        $aprovacaoImagens = [];
+                        $aprovacaoObservacoes = '';
+                        if ($aprovacaoPedido && isset($aprovacaoPedido['imagens'])) {
+                            if (is_array($aprovacaoPedido['imagens'])) {
+                                $aprovacaoImagens = $aprovacaoPedido['imagens'];
+                            } elseif (is_string($aprovacaoPedido['imagens'])) {
+                                $aprovacaoImagens = json_decode($aprovacaoPedido['imagens'], true) ?? [];
+                            }
+                        }
+                        // As observações de aprovação não são armazenadas diretamente, mas fazem parte da conversa
+                        // Para exibir a última observação, teríamos que parsear a conversa, o que é mais complexo.
+                        // Por simplicidade, o campo de observações será sempre vazio para novas entradas.
+                        ?>
 
-                <!-- Coluna esquerda (dados gerais) -->
-                <div class="bg-gray-50 rounded-lg p-4 md:col-span-1">
-                    <h3 class="text-lg font-semibold mb-3">Detalhes do Produto</h3>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Nome:</strong> <?= htmlspecialchars($product['name']) ?>
-                    </p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Tipo:</strong> <?= htmlspecialchars($productType) ?></p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Código:</strong>
-                        <?= htmlspecialchars($product['unique_code']) ?></p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Categoria:</strong>
-                        <?= htmlspecialchars($product['category']) ?></p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Tema:</strong>
-                        <?= htmlspecialchars($product['theme'] ?? 'N/A') ?></p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Créditos:</strong> <?= (int) ($product['credits'] ?? 0) ?>
-                    </p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Páginas:</strong>
-                        <?= htmlspecialchars($product['page_count'] ?? 'N/A') ?></p>
-                    <p class="text-sm text-gray-700 mb-2"><strong>Customização:</strong>
-                        <?= htmlspecialchars($product['customization_types'] ?? 'N/A') ?></p>
-                    <p class="text-sm text-gray-700"><strong>Status Pedido:</strong> <span
-                            id="current-status"><?= htmlspecialchars($status) ?></span></p>
-                    <p class="text-sm text-gray-700 mt-4"><strong>Observações do Cliente:</strong></p>
-                    <p class="text-sm text-gray-700 italic">
-                        <?= htmlspecialchars($purchase['observations'] ?? 'Nenhuma observação.') ?>
-                    </p>
-                    <p class="text-sm text-gray-700 mt-4"><strong>Customização Solicitada:</strong></p>
-                    <p class="text-sm text-gray-700 italic">
-                        <?= htmlspecialchars($purchase['customization'] ?? 'Nenhuma customização específica.') ?>
-                    </p>
-                </div>
-
-                <!-- Coluna direita (chat / ações por status) -->
-                <div class="bg-gray-50 rounded-lg p-4 md:col-span-2 text-center">
-                    <h3 class="text-lg font-semibold mb-3">Detalhes do Cliente</h3>
-                    <!--aqui entram os dados personalizados do cliente  -->
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+                        <?php if (!empty($aprovacaoImagens)): ?>
+                            <h4 class="text-md font-semibold mb-2">Modificação para Aprovação.</h4>
+                            <div class="bg-gray-50 rounded-lg p-3 mb-6 overflow-x-auto flex gap-2">
+                                <?php foreach ($aprovacaoImagens as $img): ?>
+                                    <div class="flex-shrink-0 h-[300px] bg-white rounded shadow overflow-hidden">
+                                        <img src="<?= $_SESSION['base_url'] . htmlspecialchars($img) ?>" alt="Imagem Aprovacao" class="h-full w-auto object-contain">
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2 mb-2">
                 <?php if ($aprovacaoPedido): ?>
                     <div class="bg-gray-50 rounded-lg p-4 md:col-span-1">
                         <h3 class="text-lg font-semibold mb-3">Chat</h3>
@@ -237,34 +241,8 @@ function etapaIndex($etapaAtual)
                     </div>
                     <div class="bg-gray-50 rounded-lg p-4 md:col-span-1">
                         <h3 class="text-lg font-semibold mb-3">Upload de Arquivos para Aprovação</h3>
-                        <?php
-                        $aprovacaoImagens = [];
-                        $aprovacaoObservacoes = '';
-                        if ($aprovacaoPedido && isset($aprovacaoPedido['imagens'])) {
-                            if (is_array($aprovacaoPedido['imagens'])) {
-                                $aprovacaoImagens = $aprovacaoPedido['imagens'];
-                            } elseif (is_string($aprovacaoPedido['imagens'])) {
-                                $aprovacaoImagens = json_decode($aprovacaoPedido['imagens'], true) ?? [];
-                            }
-                        }
-                        // As observações de aprovação não são armazenadas diretamente, mas fazem parte da conversa
-                        // Para exibir a última observação, teríamos que parsear a conversa, o que é mais complexo.
-                        // Por simplicidade, o campo de observações será sempre vazio para novas entradas.
-                        ?>
-
-                        <?php if (!empty($aprovacaoImagens)): ?>
-                            <h4 class="text-md font-semibold mb-2">Imagens Anexadas Anteriormente:</h4>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <?php foreach ($aprovacaoImagens as $img): ?>
-                                    <div class="w-24 h-24 border rounded overflow-hidden">
-                                        <img src="<?= $_SESSION['base_url'] . htmlspecialchars($img) ?>" alt="Imagem Aprovacao"
-                                            class="w-full h-full object-cover">
-                                    </div>
-                                <?php endforeach; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <form id="upload-form" action="../api/post/insert_aprovacao_pedido.php" method="POST"
+                        
+                        <form action="../api/post/insert_aprovacao_pedido.php" method="POST"
                             enctype="multipart/form-data">
                             <input type="hidden" name="uid_usuario_pedido"
                                 value="<?= htmlspecialchars($purchase['user_id']) ?>">
@@ -284,8 +262,8 @@ function etapaIndex($etapaAtual)
                                     Aprovação:</label>
                                 <select name="aprovacao" id="aprovacao"
                                     class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-black focus:border-black sm:text-sm rounded-md">
-                                    <option value="Produção" <?= ($aprovacaoPedido && $aprovacaoPedido['aprovacao'] == 'Produção') ? 'selected' : '' ?>>Produção</option>
                                     <option value="Aprovação" <?= ($aprovacaoPedido && $aprovacaoPedido['aprovacao'] == 'Aprovação') ? 'selected' : '' ?>>Aprovação</option>
+                                    <option value="Produção" <?= ($aprovacaoPedido && $aprovacaoPedido['aprovacao'] == 'Produção') ? 'selected' : '' ?>>Produção</option>
                                     <option value="Revisão" <?= ($aprovacaoPedido && $aprovacaoPedido['aprovacao'] == 'Revisão') ? 'selected' : '' ?>>Revisão</option>
                                     <option value="Disponível" <?= ($aprovacaoPedido && $aprovacaoPedido['aprovacao'] == 'Disponível') ? 'selected' : '' ?>>Disponível</option>
                                     <option value="Entregue" <?= ($aprovacaoPedido && $aprovacaoPedido['aprovacao'] == 'Entregue') ? 'selected' : '' ?>>Entregue</option>
@@ -310,7 +288,7 @@ function etapaIndex($etapaAtual)
                 <!-- Novo Formulário para Upload de ZIP -->
                 <div class="bg-gray-50 rounded-lg p-4 md:col-span-1">
                     <h3 class="text-lg font-semibold mb-3">Upload de Arquivo de Entrega (ZIP)</h3>
-                    <form id="upload-zip-form" action="../api/upload/upload_entrega_zip.php" method="POST"
+                    <form action="../api/upload/upload_entrega_zip.php" method="POST"
                         enctype="multipart/form-data">
                         <input type="hidden" name="user_id" value="<?= htmlspecialchars($purchase['user_id']) ?>">
                         <input type="hidden" name="purchase_id" value="<?= htmlspecialchars($purchase['id']) ?>">
@@ -325,6 +303,280 @@ function etapaIndex($etapaAtual)
                             Fazer Upload do ZIP
                         </button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Conteúdo em colunas -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Coluna esquerda (dados gerais) -->
+                <div class="bg-gray-50 rounded-lg p-4 md:col-span-1">
+                    <h3 class="text-lg font-semibold mb-3">Detalhes do Produto</h3>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Nome:</strong> <?= htmlspecialchars($product['name']) ?>
+                    </p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Tipo:</strong> <?= htmlspecialchars($productType) ?></p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Código:</strong>
+                        <?= htmlspecialchars($product['unique_code']) ?></p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Categoria:</strong>
+                        <?= htmlspecialchars($product['category']) ?></p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Tema:</strong>
+                        <?= htmlspecialchars($product['theme'] ?? 'N/A') ?></p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Créditos:</strong> <?= (int) ($product['credits'] ?? 0) ?>
+                    </p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Páginas:</strong>
+                        <?= htmlspecialchars($product['page_count'] ?? 'N/A') ?></p>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Customização:</strong>
+                        <?= htmlspecialchars($product['customization_types'] ?? 'N/A') ?></p>
+                    <p class="text-sm text-gray-700"><strong>Status Pedido:</strong> <span
+                            id="current-status"><?= htmlspecialchars($status) ?></span></p>
+                    <p class="text-sm text-gray-700 mt-4"><strong>Observações do Cliente:</strong></p>
+                    <p class="text-sm text-gray-700 italic">
+                        <?= htmlspecialchars($purchase['observations'] ?? 'Nenhuma observação.') ?>
+                    </p>
+                    <p class="text-sm text-gray-700 mt-4"><strong>Customização Solicitada:</strong></p>
+                    <p class="text-sm text-gray-700 italic">
+                        <?= htmlspecialchars($purchase['customization'] ?? 'Nenhuma customização específica.') ?>
+                    </p>
+                </div>
+
+                <!-- Coluna direita (chat / ações por status) -->
+                <div class="bg-gray-50 rounded-lg p-4 md:col-span-2 text-center">
+                    <h3 class="text-lg font-semibold mb-3">Detalhes do Cliente</h3>
+                    <?php
+                    // Obter o UID do usuário do pedido
+                    $uid_usuario_pedido = $purchase['user_id'] ?? null;
+                    $user_doc_path = __DIR__ . '/../doc/' . $uid_usuario_pedido;
+
+                    // Função auxiliar para carregar dados de JSON
+                    function load_json_data_adm($file_path) {
+                        if (file_exists($file_path)) {
+                            return json_decode(file_get_contents($file_path), true);
+                        }
+                        return [];
+                    }
+
+                    // Carregar dados das seções do cliente
+                    $redes_sociais_cliente = load_json_data_adm($user_doc_path . '/redes_sociais.json');
+                    $cores_cliente = load_json_data_adm($user_doc_path . '/cores.json');
+                    $temas_interesse_cliente = load_json_data_adm($user_doc_path . '/temas_interesse.json');
+                    $segmento_cliente = load_json_data_adm($user_doc_path . '/segmento.json');
+                    $textos_personalizados_cliente = load_json_data_adm($user_doc_path . '/textos_personalizados.json');
+                    $logotipos_cliente = load_json_data_adm($user_doc_path . '/logotipos.json');
+                    $imagens_artes_cliente = load_json_data_adm($user_doc_path . '/imagens_artes.json');
+                    $elementos_design_cliente = load_json_data_adm($user_doc_path . '/elementos_design.json');
+                    $imagens_empresa_cliente = load_json_data_adm($user_doc_path . '/imagens_empresa.json');
+                    $produtos_cliente = load_json_data_adm($user_doc_path . '/produtos.json');
+                    ?>
+
+                    <!-- Redes Sociais -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="redes-sociais-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Redes Sociais</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="redes-sociais-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty(array_filter($redes_sociais_cliente))): ?>
+                                <p class="text-sm text-gray-700 mb-1"><strong>Instagram:</strong> <?= htmlspecialchars($redes_sociais_cliente['instagram'] ?? 'N/A') ?></p>
+                                <p class="text-sm text-gray-700 mb-1"><strong>Facebook:</strong> <?= htmlspecialchars($redes_sociais_cliente['facebook'] ?? 'N/A') ?></p>
+                                <p class="text-sm text-gray-700 mb-1"><strong>WhatsApp:</strong> <?= htmlspecialchars($redes_sociais_cliente['whatsapp'] ?? 'N/A') ?></p>
+                                <p class="text-sm text-gray-700 mb-1"><strong>Website:</strong> <?= htmlspecialchars($redes_sociais_cliente['site'] ?? 'N/A') ?></p>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhuma informação de redes sociais.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Cores Principais -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="cores-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Cores Principais</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="cores-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty(array_filter($cores_cliente))): ?>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <p class="text-sm text-gray-700"><strong>Principal:</strong> <span class="inline-block w-4 h-4 rounded-full border" style="background-color: <?= htmlspecialchars($cores_cliente['cor_principal'] ?? '#FFFFFF') ?>;"></span> <?= htmlspecialchars($cores_cliente['cor_principal'] ?? 'N/A') ?></p>
+                                    <p class="text-sm text-gray-700"><strong>Secundária:</strong> <span class="inline-block w-4 h-4 rounded-full border" style="background-color: <?= htmlspecialchars($cores_cliente['cor_secundaria'] ?? '#FFFFFF') ?>;"></span> <?= htmlspecialchars($cores_cliente['cor_secundaria'] ?? 'N/A') ?></p>
+                                    <p class="text-sm text-gray-700"><strong>Complemento:</strong> <span class="inline-block w-4 h-4 rounded-full border" style="background-color: <?= htmlspecialchars($cores_cliente['cor_complemento'] ?? '#FFFFFF') ?>;"></span> <?= htmlspecialchars($cores_cliente['cor_complemento'] ?? 'N/A') ?></p>
+                                    <p class="text-sm text-gray-700"><strong>Destaque:</strong> <span class="inline-block w-4 h-4 rounded-full border" style="background-color: <?= htmlspecialchars($cores_cliente['cor_destaque'] ?? '#FFFFFF') ?>;"></span> <?= htmlspecialchars($cores_cliente['cor_destaque'] ?? 'N/A') ?></p>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhuma cor informada.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Temas de Interesse -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="temas-interesse-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Temas de Interesse</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="temas-interesse-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($temas_interesse_cliente['subtemas'])): ?>
+                                <ul class="list-disc list-inside text-sm text-gray-700">
+                                    <?php foreach ($temas_interesse_cliente['subtemas'] as $subtema): ?>
+                                        <li><?= htmlspecialchars($subtema) ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhum tema de interesse informado.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Segmento -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="segmento-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Segmento</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="segmento-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($segmento_cliente['segmento'])): ?>
+                                <p class="text-sm text-gray-700"><?= htmlspecialchars($segmento_cliente['segmento']) ?></p>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhum segmento informado.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Textos Personalizados -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="textos-personalizados-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Textos Personalizados</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="textos-personalizados-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty(array_filter($textos_personalizados_cliente))): ?>
+                                <?php for ($i = 1; $i <= 3; $i++): ?>
+                                    <?php if (!empty($textos_personalizados_cliente["texto_personalizado_$i"])): ?>
+                                        <p class="text-sm text-gray-700 mb-1"><strong>Texto <?= $i ?>:</strong> <?= htmlspecialchars($textos_personalizados_cliente["texto_personalizado_$i"]) ?></p>
+                                    <?php endif; ?>
+                                <?php endfor; ?>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhum texto personalizado informado.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Logotipos -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="logotipos-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Logotipos</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="logotipos-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($logotipos_cliente)): ?>
+                                <div class="flex flex-wrap gap-2">
+                                    <?php foreach ($logotipos_cliente as $logo): ?>
+                                        <div class="relative w-24 h-24 border rounded overflow-hidden">
+                                            <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/logotipos/<?= htmlspecialchars($logo) ?>" alt="Logotipo" class="w-full h-full object-cover">
+                                            <a href="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/logotipos/<?= htmlspecialchars($logo) ?>" download class="absolute bottom-0 right-0 bg-black bg-opacity-75 text-white p-1 text-xs rounded-tl-lg"><i class="fas fa-download"></i></a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhum logotipo enviado.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Imagens para Artes -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="imagens-artes-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Imagens para Artes</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="imagens-artes-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($imagens_artes_cliente)): ?>
+                                <div class="flex flex-wrap gap-2">
+                                    <?php foreach ($imagens_artes_cliente as $img): ?>
+                                        <div class="relative w-24 h-24 border rounded overflow-hidden">
+                                            <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/imagens_artes/<?= htmlspecialchars($img) ?>" alt="Imagem para Arte" class="w-full h-full object-cover">
+                                            <a href="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/imagens_artes/<?= htmlspecialchars($img) ?>" download class="absolute bottom-0 right-0 bg-black bg-opacity-75 text-white p-1 text-xs rounded-tl-lg"><i class="fas fa-download"></i></a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhuma imagem para artes enviada.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Elementos de Design -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="elementos-design-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Elementos de Design</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="elementos-design-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($elementos_design_cliente)): ?>
+                                <div class="flex flex-wrap gap-2">
+                                    <?php foreach ($elementos_design_cliente as $elem): ?>
+                                        <div class="relative w-24 h-24 border rounded overflow-hidden">
+                                            <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/elementos_design/<?= htmlspecialchars($elem) ?>" alt="Elemento de Design" class="w-full h-full object-cover">
+                                            <a href="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/elementos_design/<?= htmlspecialchars($elem) ?>" download class="absolute bottom-0 right-0 bg-black bg-opacity-75 text-white p-1 text-xs rounded-tl-lg"><i class="fas fa-download"></i></a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhum elemento de design enviado.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Imagens da Empresa -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="imagens-empresa-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Imagens da Empresa</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="imagens-empresa-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($imagens_empresa_cliente)): ?>
+                                <div class="flex flex-wrap gap-2">
+                                    <?php foreach ($imagens_empresa_cliente as $img): ?>
+                                        <div class="relative w-24 h-24 border rounded overflow-hidden">
+                                            <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/imagens_empresa/<?= htmlspecialchars($img) ?>" alt="Imagem da Empresa" class="w-full h-full object-cover">
+                                            <a href="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/imagens_empresa/<?= htmlspecialchars($img) ?>" download class="absolute bottom-0 right-0 bg-black bg-opacity-75 text-white p-1 text-xs rounded-tl-lg"><i class="fas fa-download"></i></a>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhuma imagem da empresa enviada.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Produtos do Cliente -->
+                    <div class="mb-4 border rounded-lg overflow-hidden">
+                        <div class="flex justify-between items-center bg-gray-100 p-4 cursor-pointer" data-collapse-toggle="produtos-cliente-collapse">
+                            <h4 class="font-semibold text-gray-700">Produtos do Cliente</h4>
+                            <i class="fas fa-chevron-down text-gray-500"></i>
+                        </div>
+                        <div id="produtos-cliente-collapse" class="p-4 hidden">
+                            <?php if (!empty($produtos_cliente) && is_array($produtos_cliente)): ?>
+                                <?php foreach ($produtos_cliente as $product_data): ?>
+                                    <div class="mb-4 p-3 border rounded-lg bg-white">
+                                        <p class="text-sm text-gray-700 mb-1"><strong>Nome:</strong> <?= htmlspecialchars($product_data['name'] ?? 'N/A') ?></p>
+                                        <p class="text-sm text-gray-700 mb-1"><strong>Descrição:</strong> <?= htmlspecialchars($product_data['description'] ?? 'N/A') ?></p>
+                                        <p class="text-sm text-gray-700 mb-2"><strong>Informação:</strong> <?= htmlspecialchars($product_data['info'] ?? 'N/A') ?></p>
+                                        <?php if (!empty($product_data['images']) && is_array($product_data['images'])): ?>
+                                            <div class="flex flex-wrap gap-2 mt-2">
+                                                <?php foreach ($product_data['images'] as $img): ?>
+                                                    <div class="relative w-24 h-24 border rounded overflow-hidden">
+                                                        <img src="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/produtos/<?= htmlspecialchars($img) ?>" alt="Produto" class="w-full h-full object-cover">
+                                                        <a href="<?= $_SESSION['base_url'] ?>/doc/<?= htmlspecialchars($uid_usuario_pedido) ?>/produtos/<?= htmlspecialchars($img) ?>" download class="absolute bottom-0 right-0 bg-black bg-opacity-75 text-white p-1 text-xs rounded-tl-lg"><i class="fas fa-download"></i></a>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-500">Nenhum produto enviado.</p>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -556,57 +808,7 @@ function etapaIndex($etapaAtual)
         }
     });
 
-    // Lógica AJAX para o formulário de upload de imagens de aprovação
-    document.getElementById('upload-form')?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData // FormData é enviado diretamente sem Content-Type para uploads
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert('Upload e aprovação registrados com sucesso!');
-                window.location.reload(); // Recarrega a página para atualizar tudo
-            } else {
-                alert('Erro ao registrar aprovação: ' + result.message);
-            }
-        } catch (error) {
-            alert('Erro na comunicação com o servidor ao fazer upload.');
-            console.error('Erro:', error);
-        }
-    });
-
-    // Lógica AJAX para o formulário de upload de ZIP
-    document.getElementById('upload-zip-form')?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: formData // FormData é enviado diretamente sem Content-Type para uploads
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                alert('Arquivo ZIP enviado com sucesso!');
-                window.location.reload(); // Recarrega a página para atualizar tudo
-            } else {
-                alert('Erro ao enviar arquivo ZIP: ' + result.message);
-            }
-        } catch (error) {
-            alert('Erro na comunicação com o servidor ao fazer upload do ZIP.');
-            console.error('Erro:', error);
-        }
-    });
+   
 
     // Garante que o chat esteja sempre no final
     document.addEventListener('DOMContentLoaded', () => {
@@ -614,5 +816,16 @@ function etapaIndex($etapaAtual)
         if (chatBox) {
             chatBox.scrollTop = chatBox.scrollHeight;
         }
+        // Script para funcionalidade de colapso
+        document.querySelectorAll('[data-collapse-toggle]').forEach(trigger => {
+            trigger.addEventListener('click', () => {
+                const targetId = trigger.getAttribute('data-collapse-toggle');
+                const targetElement = document.getElementById(targetId);
+
+                if (targetElement) {
+                    targetElement.classList.toggle('hidden');
+                }
+            });
+        });
     });
 </script>
