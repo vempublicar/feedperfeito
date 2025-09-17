@@ -42,7 +42,8 @@ $carouselProducts = $carouselProductModel->all();
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de
             Personalização
           </th>
-          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Download
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Download
           </th>
           <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status
           </th>
@@ -91,7 +92,11 @@ $carouselProducts = $carouselProductModel->all();
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <?php if (!empty($product['download'])): ?>
-                  <a href="<?php echo htmlspecialchars($product['download']); ?>" target="_blank" class="text-blue-600 hover:text-blue-900">Download</a>
+                  <a href="#"
+                    onclick="openDownloadWindow('<?php echo $_SESSION['base_url']; ?>/download.php?file=<?php echo urlencode($product['download']); ?>'); return false;"
+                    class="text-blue-600 hover:text-blue-900">
+                    Download
+                  </a>
                 <?php else: ?>
                   -
                 <?php endif; ?>
@@ -139,7 +144,8 @@ $carouselProducts = $carouselProductModel->all();
   </div>
 
   <!-- Modal para Adicionar Produto Carrossel -->
-  <div id="addCarouselProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+  <div id="addCarouselProductModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
     <div class="relative top-20 mx-auto p-5 border w-2/3 shadow-lg rounded-md bg-white">
       <div class="flex justify-between items-center pb-3">
         <h3 class="text-lg leading-6 font-medium text-gray-900" id="addModalTitle">Adicionar Produto Carrossel</h3>
@@ -150,7 +156,9 @@ $carouselProducts = $carouselProductModel->all();
       </div>
       <div class="mt-2">
         <!-- Formulário de Adição de Produto Carrossel -->
-        <form id="addCarouselProductForm" action="<?php echo $_SESSION['base_url']; ?>/api/post/insert_carousel_product.php" method="POST" enctype="multipart/form-data">
+        <form id="addCarouselProductForm"
+          action="<?php echo $_SESSION['base_url']; ?>/api/post/insert_carousel_product.php" method="POST"
+          enctype="multipart/form-data">
           <input type="hidden" name="_method" value="POST">
 
           <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
@@ -203,10 +211,12 @@ $carouselProducts = $carouselProductModel->all();
             <!-- Campo de Upload de Download (inicialmente oculto) -->
             <div id="add_download_field" class="hidden">
               <label for="add_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
-              <input type="file" name="download" id="add_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+              <input type="file" name="download[]" id="add_download" multiple
+                accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*"
                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
-              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
-              <div id="add_download_preview" class="mt-2 text-sm text-gray-600"></div>
+              <p class="mt-1 text-sm text-gray-500">Selecione um ou mais arquivos (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT,
+                PPTX, Imagens).</p>
+              <div id="add_download_previews" class="mt-2 flex flex-wrap gap-2"></div>
             </div>
 
             <div>
@@ -278,7 +288,8 @@ $carouselProducts = $carouselProductModel->all();
   </div>
 
   <!-- Modal para Editar Produto Carrossel -->
-  <div id="editCarouselProductModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+  <div id="editCarouselProductModal"
+    class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
     <div class="relative top-20 mx-auto p-5 border w-2/3 shadow-lg rounded-md bg-white">
       <div class="flex justify-between items-center pb-3">
         <h3 class="text-lg leading-6 font-medium text-gray-900" id="editModalTitle">Editar Produto Carrossel</h3>
@@ -289,7 +300,9 @@ $carouselProducts = $carouselProductModel->all();
       </div>
       <div class="mt-2">
         <!-- Formulário de Edição de Produto Carrossel -->
-        <form id="editCarouselProductForm" action="<?php echo $_SESSION['base_url']; ?>/api/post/update_carousel_product.php" method="POST" enctype="multipart/form-data">
+        <form id="editCarouselProductForm"
+          action="<?php echo $_SESSION['base_url']; ?>/api/post/update_carousel_product.php" method="POST"
+          enctype="multipart/form-data">
           <input type="hidden" name="id" id="edit_product_id">
           <input type="hidden" name="_method" id="edit_method" value="PUT">
 
@@ -343,10 +356,12 @@ $carouselProducts = $carouselProductModel->all();
             <!-- Campo de Upload de Download (inicialmente oculto) -->
             <div id="edit_download_field" class="hidden">
               <label for="edit_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
-              <input type="file" name="download" id="edit_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+              <input type="file" name="download[]" id="edit_download" multiple
+                accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*"
                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
-              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
-              <div id="edit_download_preview" class="mt-2 text-sm text-gray-600"></div>
+              <p class="mt-1 text-sm text-gray-500">Selecione um ou mais arquivos (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT,
+                PPTX, Imagens).</p>
+              <div id="edit_download_previews" class="mt-2 flex flex-wrap gap-2"></div>
             </div>
 
             <div>
@@ -439,8 +454,8 @@ $carouselProducts = $carouselProductModel->all();
     const addTypeField = document.getElementById('add_type');
     const addDownloadField = document.getElementById('add_download_field');
     const addDownloadInput = document.getElementById('add_download');
-    const addDownloadPreview = document.getElementById('add_download_preview');
-    let addUploadedImageFiles = [];
+    const addDownloadPreviewsContainer = document.getElementById('add_download_previews');
+    let addUploadedDownloadFiles = [];
 
     // Referências para o modal de Edição
     const editCarouselProductModal = document.getElementById('editCarouselProductModal');
@@ -453,8 +468,8 @@ $carouselProducts = $carouselProductModel->all();
     const editTypeField = document.getElementById('edit_type');
     const editDownloadField = document.getElementById('edit_download_field');
     const editDownloadInput = document.getElementById('edit_download');
-    const editDownloadPreview = document.getElementById('edit_download_preview');
-    let editUploadedImageFiles = [];
+    const editDownloadPreviewsContainer = document.getElementById('edit_download_previews');
+    let editUploadedDownloadFiles = [];
 
     // Armazena as URLs das imagens existentes que devem ser mantidas
     let existingImageUrlsToKeep = [];
@@ -542,11 +557,50 @@ $carouselProducts = $carouselProductModel->all();
       }
     }
 
-    function handleDownloadFileSelect(event, previewContainer) {
-      previewContainer.innerHTML = '';
-      const file = event.target.files[0];
-      if (file) {
-        previewContainer.innerHTML = `<span>Arquivo selecionado: ${file.name}</span>`;
+    function handleDownloadFileSelect(event, container, isEditModal = false) {
+      container.innerHTML = ''; // Limpa previews anteriores
+      const currentUploadedFiles = isEditModal ? editUploadedDownloadFiles : addUploadedDownloadFiles;
+      currentUploadedFiles.length = 0; // Limpa a lista de arquivos para upload
+
+      const files = event.target.files;
+      if (files.length > 0) {
+        Array.from(files).forEach(file => {
+          currentUploadedFiles.push(file);
+
+          const previewDiv = document.createElement('div');
+          previewDiv.className = 'relative w-24 h-24 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden';
+
+          let filePreview;
+          if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'w-full h-full object-cover';
+            filePreview = img;
+          } else {
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-file text-4xl text-gray-400';
+            filePreview = icon;
+          }
+          previewDiv.appendChild(filePreview);
+
+          const fileNameSpan = document.createElement('span');
+          fileNameSpan.className = 'absolute bottom-0 w-full bg-black bg-opacity-50 text-white text-xs text-center truncate px-1 py-0.5';
+          fileNameSpan.textContent = file.name;
+          previewDiv.appendChild(fileNameSpan);
+
+          const removeBtn = document.createElement('button');
+          removeBtn.innerHTML = '&times;';
+          removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold -mt-2 -mr-2 cursor-pointer';
+          removeBtn.onclick = () => {
+            const index = currentUploadedFiles.indexOf(file);
+            if (index > -1) {
+              currentUploadedFiles.splice(index, 1);
+            }
+            previewDiv.remove();
+          };
+          previewDiv.appendChild(removeBtn);
+          container.appendChild(previewDiv);
+        });
       }
     }
 
@@ -569,7 +623,7 @@ $carouselProducts = $carouselProductModel->all();
 
     // Event Listeners para o modal de Adição
     addImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, addImagePreviewsContainer, false));
-    addDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, addDownloadPreview));
+    addDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, addDownloadPreviewsContainer, false));
     addTypeField.addEventListener('change', () => toggleDownloadField(addTypeField, addDownloadField));
 
 
@@ -579,7 +633,8 @@ $carouselProducts = $carouselProductModel->all();
       addUploadedImageFiles = [];
       addImagesUploadField.value = ''; // Resetar o campo de arquivo
       addDownloadInput.value = ''; // Resetar o campo de download
-      addDownloadPreview.innerHTML = ''; // Limpar preview do download
+      addDownloadPreviewsContainer.innerHTML = ''; // Limpar previews do download
+      addUploadedDownloadFiles = []; // Limpar lista de arquivos de download
       toggleDownloadField(addTypeField, addDownloadField); // Esconder/mostrar baseado no tipo inicial
       addCarouselProductModal.classList.remove('hidden');
     });
@@ -597,12 +652,16 @@ $carouselProducts = $carouselProductModel->all();
         addCarouselProductForm.reset();
         addImagePreviewsContainer.innerHTML = '';
         addUploadedImageFiles = [];
+        addDownloadPreviewsContainer.innerHTML = '';
+        addUploadedDownloadFiles = [];
+        addDownloadPreviewsContainer.innerHTML = '';
+        addUploadedDownloadFiles = [];
       }
     });
 
     // Event Listeners para o modal de Edição
     editImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, editImagePreviewsContainer, true));
-    editDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, editDownloadPreview));
+    editDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, editDownloadPreviewsContainer, true));
     editTypeField.addEventListener('change', () => toggleDownloadField(editTypeField, editDownloadField));
 
 
@@ -611,7 +670,8 @@ $carouselProducts = $carouselProductModel->all();
         editCarouselProductForm.reset(); // Limpa o formulário antes de preencher
         editImagesUploadField.value = ''; // Resetar o campo de arquivo
         editDownloadInput.value = ''; // Resetar o campo de download
-        editDownloadPreview.innerHTML = ''; // Limpar preview do download
+        editDownloadPreviewsContainer.innerHTML = ''; // Limpar previews do download
+        editUploadedDownloadFiles = []; // Limpar lista de arquivos de download
 
         editCarouselProductForm.action = '<?php echo $_SESSION['base_url']; ?>/api/post/update_carousel_product.php?id=' + (this.dataset.id || '');
         editMethodField.value = 'PUT';
@@ -644,9 +704,53 @@ $carouselProducts = $carouselProductModel->all();
 
         displayImagePreviews(this.dataset.images, editImagePreviewsContainer, true);
 
-        // Preencher e exibir o preview do download, se houver
+        // Preencher e exibir os previews do download, se houver
         if (this.dataset.download) {
-          editDownloadPreview.innerHTML = `<span>Arquivo atual: <a href="${this.dataset.download}" target="_blank">${this.dataset.download.split('/').pop()}</a></span>`;
+          try {
+            const downloads = JSON.parse(this.dataset.download);
+            downloads.forEach(downloadUrl => {
+              const previewDiv = document.createElement('div');
+              previewDiv.className = 'relative w-24 h-24 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden';
+
+              let filePreview;
+              const fileName = downloadUrl.split('/').pop();
+              const fileExtension = fileName.split('.').pop().toLowerCase();
+
+              if (['jpg', 'png', 'jpeg', 'gif'].includes(fileExtension)) {
+                const img = document.createElement('img');
+                img.src = downloadUrl;
+                img.className = 'w-full h-full object-cover';
+                filePreview = img;
+              } else {
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-file text-4xl text-gray-400';
+                filePreview = icon;
+              }
+              previewDiv.appendChild(filePreview);
+
+              const fileNameSpan = document.createElement('span');
+              fileNameSpan.className = 'absolute bottom-0 w-full bg-black bg-opacity-50 text-white text-xs text-center truncate px-1 py-0.5';
+              fileNameSpan.textContent = fileName;
+              previewDiv.appendChild(fileNameSpan);
+
+              const removeBtn = document.createElement('button');
+              removeBtn.innerHTML = '&times;';
+              removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold -mt-2 -mr-2 cursor-pointer';
+              removeBtn.onclick = () => {
+                previewDiv.remove();
+                // Remover da lista de downloads existentes a serem mantidos
+                const index = existingDownloadUrlsToKeep.indexOf(downloadUrl);
+                if (index > -1) {
+                  existingDownloadUrlsToKeep.splice(index, 1);
+                }
+              };
+              previewDiv.appendChild(removeBtn);
+              editDownloadPreviewsContainer.appendChild(previewDiv);
+              existingDownloadUrlsToKeep.push(downloadUrl);
+            });
+          } catch (e) {
+            console.error("Erro ao parsear downloads existentes:", e);
+          }
         }
         toggleDownloadField(editTypeField, editDownloadField); // Esconder/mostrar baseado no tipo do produto existente
 
@@ -659,6 +763,10 @@ $carouselProducts = $carouselProductModel->all();
       editCarouselProductForm.reset();
       editImagePreviewsContainer.innerHTML = '';
       editUploadedImageFiles = [];
+      editDownloadPreviewsContainer.innerHTML = '';
+      editUploadedDownloadFiles = [];
+      editDownloadPreviewsContainer.innerHTML = '';
+      editUploadedDownloadFiles = [];
     });
 
     window.addEventListener('click', (event) => {
@@ -670,5 +778,19 @@ $carouselProducts = $carouselProductModel->all();
       }
     });
 
+    function openDownloadWindow(url) {
+      const width = 800;
+      const height = 600;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      window.open(url, 'DownloadWindow', `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`);
+    }
+    window.openDownloadWindow = function (url) { // Tornar a função global
+      const width = 800;
+      const height = 600;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      window.open(url, '_blank', `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`);
+    }
   })();
 </script>

@@ -224,12 +224,13 @@ function etapaIndex($etapaAtual)
                                 }
                             }
                             ?>
-                            <p class="text-gray-700 mb-4">🎉 Seu produto está pronto para download. Parabéns!</p>
+                            <p class="text-gray-700 mb-4">🎉 Seu produto está pronto para download. </p>
                             <?php if (!empty($downloadPath)): ?>
-                                <a href="<?= htmlspecialchars($downloadPath) ?>"
+                                <a href="#"
+                                    onclick="openDownloadWindow('<?php echo $_SESSION['base_url']; ?>/download.php?file=<?php echo urlencode($aprovacaoPedido['arquivos']); ?>'); return false;"
                                     class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 inline-block download-product-btn"
                                     data-purchase-id="<?= htmlspecialchars($purchase['id']) ?>"
-                                    data-new-status="Bosta">
+                                    data-new-status="Entregue">
                                     <i class="fas fa-download mr-2"></i> Download do Produto
                                 </a>
                             <?php else: ?>
@@ -241,13 +242,12 @@ function etapaIndex($etapaAtual)
                             <p class="text-gray-700 mb-4">Parabéns pela aquisição! Seu Instagram será fortalecido com este
                                 conteúdo.<br>Segue também o manual para extrair o melhor engajamento.</p>
                             <div class="flex gap-3 justify-center">
-                                <a href="download.php?manual=<?= urlencode($product['unique_code']) ?>"
-                                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700">
-                                    <i class="fas fa-book mr-2"></i> Download Manual
-                                </a>
-                                <a href="download.php?file=<?= urlencode($product['unique_code']) ?>"
-                                    class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
-                                    <i class="fas fa-download mr-2"></i> Download Produto
+                                <a href="#"
+                                    onclick="openDownloadWindow('<?php echo $_SESSION['base_url']; ?>/download.php?file=<?php echo urlencode($aprovacaoPedido['arquivos']); ?>'); return false;"
+                                    class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 inline-block download-product-btn"
+                                    data-purchase-id="<?= htmlspecialchars($purchase['id']) ?>"
+                                    data-new-status="Entregue">
+                                    <i class="fas fa-download mr-2"></i> Download do Produto
                                 </a>
                             </div>
                         <?php endif; ?>
@@ -298,21 +298,16 @@ function etapaIndex($etapaAtual)
                 </div>
             <?php elseif (empty($aprovacaoPedido) && $currentStatus === 'Disponível'): ?>
                 <div class="flex justify-center mb-6">
-                    <form id="downloadForm_<?= htmlspecialchars($purchase['id']) ?>" action="../api/get/download_product.php" method="POST" style="display: none;">
-                        <input type="hidden" name="file_path" value="<?= htmlspecialchars($product['download']) ?>">
-                        <input type="hidden" name="purchase_id" value="<?= htmlspecialchars($purchase['id']) ?>">
-                    </form>
-                    <button type="button"
-                        class="bg-green-500 text-white py-2 px-4 rounded font-medium hover:bg-green-600 transition download-product-btn"
-                        data-purchase-id="<?= htmlspecialchars($purchase['id']) ?>"
-                        data-new-status="Entregue"
-                        data-form-id="downloadForm_<?= htmlspecialchars($purchase['id']) ?>"
-                        data-download-path="<?= htmlspecialchars($product['download']) ?>">
-                        Download do Produto
-                    </button>
+                    <a href="#"
+                                    onclick="openDownloadWindow('<?php echo $_SESSION['base_url']; ?>/download.php?file=<?php echo urlencode($product['download']); ?>'); return false;"
+                                    class="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 inline-block download-product-btn"
+                                    data-purchase-id="<?= htmlspecialchars($purchase['id']) ?>"
+                                    data-new-status="Entregue">
+                                    <i class="fas fa-download mr-2"></i> Download do Produto
+                                </a>                    
                 </div>
             <?php else: ?>
-                <p class="text-gray-700 text-center">Nenhum registro de aprovação encontrado para este pedido.</p>
+                <p class="text-gray-700">Nenhum registro de aprovação encontrado para este pedido.</p>
             <?php endif; ?>
 
         <?php else: ?>
@@ -525,14 +520,12 @@ function etapaIndex($etapaAtual)
     // Lógica AJAX para o botão de download do produto
     document.querySelectorAll('.download-product-btn').forEach(button => {
         button.addEventListener('click', async (event) => {
-            event.preventDefault(); // Previne o comportamento padrão do link
-            console.log('Botão de download clicado!');
+            event.preventDefault(); // Previne o download imediato
+            console.log('Botão de download clicado!'); // Adicionar este log
             const purchaseId = event.target.dataset.purchaseId;
             const newStatus = event.target.dataset.newStatus;
-            const downloadPath = event.target.dataset.downloadPath; // Pega o caminho do download
-            const formId = event.target.dataset.formId;
-            const downloadForm = document.getElementById(formId);
-
+            const downloadUrl = event.target.href; // URL original do download
+ 
             try {
                 const response = await fetch('../api/post/update_purchase_status.php', {
                     method: 'POST',
@@ -541,20 +534,17 @@ function etapaIndex($etapaAtual)
                     },
                     body: JSON.stringify({
                         purchase_id: purchaseId,
-                        new_status: newStatus,
-                        download_path: downloadPath
+                        new_status: newStatus
                     })
                 });
-
+                console.log('Resposta da requisição:', response); // Debugging
+ 
                 const result = await response.json();
-
+                console.log('Resultado da requisição:', result); // Debugging
+ 
                 if (result.success) {
-                    // Se a atualização do status for bem-sucedida, submete o formulário de download
-                    if (downloadForm) {
-                        downloadForm.submit();
-                    } else {
-                        alert('Erro: Formulário de download não encontrado.');
-                    }
+                    // Se a atualização do status for bem-sucedida, inicia o download
+                    window.location.href = downloadUrl;
                 } else {
                     alert('Erro ao registrar download: ' + result.message);
                 }
@@ -576,4 +566,18 @@ function etapaIndex($etapaAtual)
             window.location.reload();
         }, 300000);
     });
+     function openDownloadWindow(url) {
+      const width = 800;
+      const height = 600;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      window.open(url, 'DownloadWindow', `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`);
+    }
+    window.openDownloadWindow = function (url) { // Tornar a função global
+      const width = 800;
+      const height = 600;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      window.open(url, '_blank', `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`);
+    }
 </script>

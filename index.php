@@ -30,6 +30,7 @@ if ($isUser || $isAdmin) {
     } else {
         // include 'login.php';
         // Fallback for unexpected states, redirect to login
+        session_destroy();
         header('Location: ' . $_SESSION['base_url'] . '/login');
         exit();
     }
@@ -49,6 +50,7 @@ if ($isUser || $isAdmin) {
             // Redirect to login page if not logged in and trying to access restricted pages
             if ($page === 'dashboard' || $page === 'admin') {
                 // include 'login.php';
+                session_destroy();
                 header('Location: ' . $_SESSION['base_url'] . '/login');
                 exit();
             }

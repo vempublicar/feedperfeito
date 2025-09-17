@@ -40,7 +40,7 @@ if ($updated) {
             'uid_usuario_pedido' => $uidUsuarioPedido,
             'unique_code' => $uniqueCode,
             'pedido_id' => $purchaseId,
-            'aprovacao' => 'pendente',
+            'aprovacao' => 'Aprovação',
             'observacoes' => 'Pedido confirmado. Em breve estrará na etapa de produção.'
         ];
         $aprovacaoCreated = $aprovacaoPedidoModel->create($dataAprovacao);
