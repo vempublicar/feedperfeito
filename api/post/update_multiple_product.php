@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $uploadedImageUrls = []; // URLs das imagens recém-uploadeadas
     $existingImageUrlsFromForm = $_POST['existing_images'] ?? []; // URLs das imagens existentes que o usuário manteve no formulário
-    $downloadPath = null; // Caminho para o novo arquivo de download, se houver
+    $uploadedDownloadPaths = []; // Inicializa para múltiplos downloads
 
     // Lógica para upload de imagens
     if (!empty($_FILES['images_upload']['name'][0])) {
@@ -55,22 +55,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Lógica para upload de arquivo de download
-    if (isset($_FILES['download']) && $_FILES['download']['error'] === UPLOAD_ERR_OK) {
-        $file = $_FILES['download'];
-        $uploadDir = '../../doc/prontos/multiple/'; // Novo diretório para downloads de multiple
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
+    // Lógica para upload de múltiplos arquivos de download
+    if (!empty($_FILES['download']['name'][0])) {
+        $productDownloadDirName = uniqid('download_'); // Gera um nome único para a pasta de downloads
+        $uploadDownloadDir = '../../doc/prontos/multiple/' . $productDownloadDirName . '/'; // Corrigido o diretório
+        if (!is_dir($uploadDownloadDir)) {
+            mkdir($uploadDownloadDir, 0777, true);
         }
 
-        $fileName = uniqid() . '_' . basename($file['name']);
-        $destination = $uploadDir . $fileName;
+        $totalDownloadFiles = count($_FILES['download']['name']);
+        $downloadErrors = [];
 
-        if (move_uploaded_file($file['tmp_name'], $destination)) {
-            $downloadPath = 'doc/prontos/multiple/' . $fileName;
-        } else {
+        for ($i = 0; $i < $totalDownloadFiles; $i++) {
+            $fileName = uniqid() . '_' . basename($_FILES['download']['name'][$i]);
+            $targetFilePath = $uploadDownloadDir . $fileName;
+            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+            $allowTypes = ['zip', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'png', 'jpeg', 'gif'];
+            if (in_array($fileType, $allowTypes)) {
+                if (move_uploaded_file($_FILES['download']['tmp_name'][$i], $targetFilePath)) {
+                    $uploadedDownloadPaths[] = '/doc/prontos/multiple/' . $productDownloadDirName . '/' . $fileName;
+                } else {
+                    $downloadErrors[] = "Erro ao fazer upload de " . $_FILES['download']['name'][$i];
+                }
+            } else {
+                $downloadErrors[] = "Formato de arquivo não permitido para " . $_FILES['download']['name'][$i];
+            }
+        }
+
+        if (!empty($downloadErrors)) {
             $_SESSION['status_type'] = 'error';
-            $_SESSION['status_message'] = 'Erro ao fazer upload do arquivo de download.';
+            $_SESSION['status_message'] = 'Erro(s) no upload de downloads: ' . implode(', ', $downloadErrors);
             header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
             exit();
         }
@@ -95,16 +110,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $imagesInDatabase = json_decode($existingProduct['images'], true);
     }
 
-    // Se um novo arquivo de download foi enviado, remove o antigo
-    if ($downloadPath && $existingProduct && !empty($existingProduct['download'])) {
-        $oldDownloadPath = str_replace($_SESSION['base_url'] . '/', '../../', $existingProduct['download']);
-        if (file_exists($oldDownloadPath)) {
-            unlink($oldDownloadPath);
+    // Obter downloads existentes do banco de dados
+    $existingDownloadsInDatabase = [];
+    if ($existingProduct && !empty($existingProduct['download'])) {
+        $existingDownloadsInDatabase = json_decode($existingProduct['download'], true);
+    }
+
+    // Lógica para identificar e remover downloads antigos que não foram mantidos
+    $existingDownloadUrlsFromForm = isset($data['existing_downloads']) ? json_decode($data['existing_downloads'], true) : [];
+    if (!is_array($existingDownloadUrlsFromForm)) {
+        $existingDownloadUrlsFromForm = [];
+    }
+    
+    foreach ($existingDownloadsInDatabase as $dbDownloadUrl) {
+        if (!in_array($dbDownloadUrl, $existingDownloadUrlsFromForm)) {
+            $relativePath = str_replace($_SESSION['base_url'] . '/', '../../', $dbDownloadUrl);
+            $filePath = '../../' . $relativePath;
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+            // Remover diretório pai se estiver vazio
+            $dirPath = dirname($filePath);
+            if (is_dir($dirPath) && count(scandir($dirPath)) == 2) {
+                rmdir($dirPath);
+            }
         }
     }
     
     // Combinar URLs das imagens existentes (que o usuário manteve) com as recém-uploadeadas
     $finalImageUrls = array_merge($existingImageUrlsFromForm, $uploadedImageUrls);
+    $finalDownloadPaths = array_merge($existingDownloadUrlsFromForm, $uploadedDownloadPaths); // Combina downloads existentes e novos
 
     // Preparar os dados para atualização
     $productData = [
@@ -120,24 +155,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'page_count' => $data['page_count'] ?? 1,
         'status' => $data['status'] ?? 'active',
         'images' => json_encode($finalImageUrls),
-        'download' => $downloadPath ?? $existingProduct['download'] ?? null // Mantém o download existente se nenhum novo for enviado
+        'download' => json_encode($finalDownloadPaths) // Salva os caminhos dos arquivos de download como JSON
     ];
 
     if ($multipleProduct->update($id, $productData)) {
         $_SESSION['status_type'] = 'success';
         $_SESSION['status_message'] = 'Produto Múltiplo atualizado com sucesso!';
-        header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
+        // header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
         exit();
     } else {
         $_SESSION['status_type'] = 'error';
         $_SESSION['status_message'] = 'Erro ao atualizar o Produto Múltiplo.';
-        header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
+        // header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
         exit();
     }
 } else {
     $_SESSION['status_type'] = 'error';
     $_SESSION['status_message'] = 'Método não permitido.';
-    header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
+    // header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-multiplo');
     exit();
 }
 ?>

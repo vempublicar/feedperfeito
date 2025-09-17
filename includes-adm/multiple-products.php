@@ -67,7 +67,7 @@ $multipleProducts = $multipleProductModel->all();
               <td class="px-6 py-4"><?php echo htmlspecialchars($product['page_count'] ?? '-'); ?></td>
               <td class="px-6 py-4">
                 <?php if (!empty($product['download'])): ?>
-                  <a href="<?php echo htmlspecialchars($product['download']); ?>" target="_blank" class="text-blue-600 hover:text-blue-900">Download</a>
+                  <a href="#" onclick="openDownloadWindow('<?php echo $_SESSION['base_url']; ?>/download.php?file=<?php echo urlencode($product['download']); ?>'); return false;" class="text-blue-600 hover:text-blue-900">Download</a>
                 <?php else: ?>
                   -
                 <?php endif; ?>
@@ -95,7 +95,7 @@ $multipleProducts = $multipleProductModel->all();
                   data-customization_types='<?php echo $product['customization_types'] ? $product['customization_types'] : "[]"; ?>'
                   data-download="<?php echo htmlspecialchars($product['download'] ?? ''); ?>">
                    Editar</a>
-                <form action="<?php echo $_SESSION['base_url']; ?>/api/delete/feed_product.php" method="POST"
+                <form action="<?php echo $_SESSION['base_url']; ?>/api/delete/multiple_product.php" method="POST"
                   style="display:inline;" onsubmit="return confirm('Excluir este produto?');">
                   <input type="hidden" name="id" value="<?php echo htmlspecialchars($product['id']); ?>">
                   <input type="hidden" name="_method" value="DELETE">
@@ -169,10 +169,12 @@ $multipleProducts = $multipleProductModel->all();
             <!-- Campo de Upload de Download (inicialmente oculto) -->
             <div id="add_download_field" class="hidden">
               <label for="add_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
-              <input type="file" name="download" id="add_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+              <input type="file" name="download[]" id="add_download" multiple
+                accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*"
                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
-              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
-              <div id="add_download_preview" class="mt-2 text-sm text-gray-600"></div>
+              <p class="mt-1 text-sm text-gray-500">Selecione um ou mais arquivos (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT,
+                PPTX, Imagens).</p>
+              <div id="add_download_previews" class="mt-2 flex flex-wrap gap-2"></div>
             </div>
 
         <div>
@@ -317,10 +319,12 @@ $multipleProducts = $multipleProductModel->all();
             <!-- Campo de Upload de Download (inicialmente oculto) -->
             <div id="edit_download_field" class="hidden">
               <label for="edit_download" class="block text-sm font-medium text-gray-700">Arquivo para Download</label>
-              <input type="file" name="download" id="edit_download" accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+              <input type="file" name="download[]" id="edit_download" multiple
+                accept=".zip,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,image/*"
                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
-              <p class="mt-1 text-sm text-gray-500">Selecione um arquivo (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX).</p>
-              <div id="edit_download_preview" class="mt-2 text-sm text-gray-600"></div>
+              <p class="mt-1 text-sm text-gray-500">Selecione um ou mais arquivos (ZIP, PDF, DOC, DOCX, XLS, XLSX, PPT,
+                PPTX, Imagens).</p>
+              <div id="edit_download_previews" class="mt-2 flex flex-wrap gap-2"></div>
             </div>
 
         <div>
@@ -410,7 +414,8 @@ $multipleProducts = $multipleProductModel->all();
     const addTypeField = document.getElementById('add_type');
     const addDownloadField = document.getElementById('add_download_field');
     const addDownloadInput = document.getElementById('add_download');
-    const addDownloadPreview = document.getElementById('add_download_preview');
+    const addDownloadPreviewsContainer = document.getElementById('add_download_previews');
+    let addUploadedDownloadFiles = []; // Adicionado para gerenciar múltiplos arquivos
 
     // Referências para o modal de Edição
     const editFeedProductModal = document.getElementById('editFeedProductModal');
@@ -422,9 +427,10 @@ $multipleProducts = $multipleProductModel->all();
     const editTypeField = document.getElementById('edit_feed_type'); // Reutilizando a ID, mas deveria ser edit_multiple_type
     const editDownloadField = document.getElementById('edit_download_field');
     const editDownloadInput = document.getElementById('edit_download');
-    const editDownloadPreview = document.getElementById('edit_download_preview');
+    const editDownloadPreviewsContainer = document.getElementById('edit_download_previews');
     let editUploadedImageFiles = [];
     let addUploadedImageFiles = []; // Variável para armazenar os arquivos de imagem para o modal de adição
+    let editUploadedDownloadFiles = []; // Adicionado para gerenciar múltiplos arquivos
 
     // Funções para exibir previews de imagens (adaptadas para ambos os modais)
     // Armazena as URLs das imagens existentes que devem ser mantidas
@@ -519,11 +525,50 @@ $multipleProducts = $multipleProductModel->all();
       }
     }
 
-    function handleDownloadFileSelect(event, previewContainer) {
-      previewContainer.innerHTML = '';
-      const file = event.target.files[0];
-      if (file) {
-        previewContainer.innerHTML = `<span>Arquivo selecionado: ${file.name}</span>`;
+    function handleDownloadFileSelect(event, container, isEditModal = false) {
+      container.innerHTML = ''; // Limpa previews anteriores
+      const currentUploadedFiles = isEditModal ? editUploadedDownloadFiles : addUploadedDownloadFiles;
+      currentUploadedFiles.length = 0; // Limpa a lista de arquivos para upload
+
+      const files = event.target.files;
+      if (files.length > 0) {
+        Array.from(files).forEach(file => {
+          currentUploadedFiles.push(file);
+
+          const previewDiv = document.createElement('div');
+          previewDiv.className = 'relative w-24 h-24 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden';
+
+          let filePreview;
+          if (file.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = URL.createObjectURL(file);
+            img.className = 'w-full h-full object-cover';
+            filePreview = img;
+          } else {
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-file text-4xl text-gray-400';
+            filePreview = icon;
+          }
+          previewDiv.appendChild(filePreview);
+
+          const fileNameSpan = document.createElement('span');
+          fileNameSpan.className = 'absolute bottom-0 w-full bg-black bg-opacity-50 text-white text-xs text-center truncate px-1 py-0.5';
+          fileNameSpan.textContent = file.name;
+          previewDiv.appendChild(fileNameSpan);
+
+          const removeBtn = document.createElement('button');
+          removeBtn.innerHTML = '&times;';
+          removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold -mt-2 -mr-2 cursor-pointer';
+          removeBtn.onclick = () => {
+            const index = currentUploadedFiles.indexOf(file);
+            if (index > -1) {
+              currentUploadedFiles.splice(index, 1);
+            }
+            previewDiv.remove();
+          };
+          previewDiv.appendChild(removeBtn);
+          container.appendChild(previewDiv);
+        });
       }
     }
 
@@ -546,7 +591,7 @@ $multipleProducts = $multipleProductModel->all();
 
     // Event Listeners para o modal de Adição
     addImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, addImagePreviewsContainer, false));
-    addDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, addDownloadPreview));
+    addDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, addDownloadPreviewsContainer, false));
     addTypeField.addEventListener('change', () => toggleDownloadField(addTypeField, addDownloadField));
 
     openFeedProductModalBtn.addEventListener('click', () => {
@@ -554,7 +599,8 @@ $multipleProducts = $multipleProductModel->all();
       addImagePreviewsContainer.innerHTML = '';
       addImagesUploadField.value = '';
       addDownloadInput.value = ''; // Resetar o campo de download
-      addDownloadPreview.innerHTML = ''; // Limpar preview do download
+      addDownloadPreviewsContainer.innerHTML = ''; // Limpar previews do download
+      addUploadedDownloadFiles = []; // Limpar lista de arquivos de download
       toggleDownloadField(addTypeField, addDownloadField); // Esconder/mostrar baseado no tipo inicial
       addFeedProductModal.classList.remove('hidden');
     });
@@ -564,6 +610,8 @@ $multipleProducts = $multipleProductModel->all();
       addFeedProductForm.reset();
       addImagePreviewsContainer.innerHTML = '';
       addImagesUploadField.value = '';
+      addDownloadPreviewsContainer.innerHTML = '';
+      addUploadedDownloadFiles = [];
     });
 
     window.addEventListener('click', (event) => {
@@ -572,12 +620,14 @@ $multipleProducts = $multipleProductModel->all();
         addFeedProductForm.reset();
         addImagePreviewsContainer.innerHTML = '';
         addImagesUploadField.value = '';
+        addDownloadPreviewsContainer.innerHTML = '';
+        addUploadedDownloadFiles = [];
       }
     });
 
     // --- Modal de Edição ---
     editImagesUploadField.addEventListener('change', (event) => handleFileSelect(event, editImagePreviewsContainer, true));
-    editDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, editDownloadPreview));
+    editDownloadInput.addEventListener('change', (event) => handleDownloadFileSelect(event, editDownloadPreviewsContainer, true));
     editTypeField.addEventListener('change', () => toggleDownloadField(editTypeField, editDownloadField));
 
     document.querySelectorAll('.edit-btn').forEach(button => {
@@ -586,7 +636,8 @@ $multipleProducts = $multipleProductModel->all();
         editImagePreviewsContainer.innerHTML = '';
         editImagesUploadField.value = ''; // Resetar o campo de arquivo
         editDownloadInput.value = ''; // Resetar o campo de download
-        editDownloadPreview.innerHTML = ''; // Limpar preview do download
+        editDownloadPreviewsContainer.innerHTML = ''; // Limpar previews do download
+        editUploadedDownloadFiles = []; // Limpar lista de arquivos de download
 
         editFeedIdField.value = this.dataset.id || '';
         document.getElementById('edit_feed_name').value = this.dataset.name || '';
@@ -608,9 +659,53 @@ $multipleProducts = $multipleProductModel->all();
         // mostra imagens já salvas
         displayImagePreviews(this.dataset.images, editImagePreviewsContainer, true);
 
-        // Preencher e exibir o preview do download, se houver
+        // Preencher e exibir os previews do download, se houver
         if (this.dataset.download) {
-          editDownloadPreview.innerHTML = `<span>Arquivo atual: <a href="${this.dataset.download}" target="_blank">${this.dataset.download.split('/').pop()}</a></span>`;
+            try {
+                const downloads = JSON.parse(this.dataset.download);
+                downloads.forEach(downloadUrl => {
+                    const previewDiv = document.createElement('div');
+                    previewDiv.className = 'relative w-24 h-24 flex items-center justify-center bg-gray-100 rounded-md overflow-hidden';
+
+                    let filePreview;
+                    const fileName = downloadUrl.split('/').pop();
+                    const fileExtension = fileName.split('.').pop().toLowerCase();
+
+                    if (['jpg', 'png', 'jpeg', 'gif'].includes(fileExtension)) {
+                        const img = document.createElement('img');
+                        img.src = downloadUrl;
+                        img.className = 'w-full h-full object-cover';
+                        filePreview = img;
+                    } else {
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-file text-4xl text-gray-400';
+                        filePreview = icon;
+                    }
+                    previewDiv.appendChild(filePreview);
+
+                    const fileNameSpan = document.createElement('span');
+                    fileNameSpan.className = 'absolute bottom-0 w-full bg-black bg-opacity-50 text-white text-xs text-center truncate px-1 py-0.5';
+                    fileNameSpan.textContent = fileName;
+                    previewDiv.appendChild(fileNameSpan);
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.className = 'absolute top-0 right-0 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold -mt-2 -mr-2 cursor-pointer';
+                    removeBtn.onclick = () => {
+                        previewDiv.remove();
+                        // Remover da lista de downloads existentes a serem mantidos
+                        const index = existingDownloadUrlsToKeep.indexOf(downloadUrl);
+                        if (index > -1) {
+                            existingDownloadUrlsToKeep.splice(index, 1);
+                        }
+                    };
+                    previewDiv.appendChild(removeBtn);
+                    editDownloadPreviewsContainer.appendChild(previewDiv);
+                    existingDownloadUrlsToKeep.push(downloadUrl);
+                });
+            } catch (e) {
+                console.error("Erro ao parsear downloads existentes:", e);
+            }
         }
         toggleDownloadField(editTypeField, editDownloadField); // Esconder/mostrar baseado no tipo do produto existente
 
@@ -624,7 +719,8 @@ $multipleProducts = $multipleProductModel->all();
       editImagePreviewsContainer.innerHTML = '';
       editImagesUploadField.value = '';
       editDownloadInput.value = '';
-      editDownloadPreview.innerHTML = '';
+      editDownloadPreviewsContainer.innerHTML = '';
+      editUploadedDownloadFiles = [];
     });
 
     window.addEventListener('click', (event) => {
@@ -635,6 +731,14 @@ $multipleProducts = $multipleProductModel->all();
         editImagesUploadField.value = '';
       }
     });
+
+    window.openDownloadWindow = function(url) { // Tornar a função global
+      const width = 800;
+      const height = 600;
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      window.open(url, 'DownloadWindow', `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`);
+    }
 
   })();
 </script>

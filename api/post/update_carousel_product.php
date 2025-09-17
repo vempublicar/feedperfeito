@@ -23,7 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Lógica para upload de imagens
     if (!empty($_FILES['images_upload']['name'][0])) {
-        $uploadDir = '../../uploads/carrossel/';
+        // Para updates, o diretório do produto já deve existir, mas garantimos que sim
+        // O nome do diretório do produto será o unique_code, que é gerado na criação
+        // Se for um produto novo ou se o unique_code mudar (o que não deveria acontecer em um update),
+        // ele será criado aqui.
+        $productUniqueCode = $existingProduct['unique_code'] ?? uniqid(); // Reutiliza o existing unique_code
+        $uploadDir = '../../uploads/carrossel/' . $productUniqueCode . '/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }
@@ -39,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $allowTypes = ['jpg', 'png', 'jpeg', 'gif'];
             if (in_array($fileType, $allowTypes)) {
                 if (move_uploaded_file($_FILES['images_upload']['tmp_name'][$i], $targetFilePath)) {
-                    $uploadedImageUrls[] = $_SESSION['base_url'] . '/uploads/carrossel/' . $fileName;
+                    $uploadedImageUrls[] = $_SESSION['base_url'] . '/uploads/carrossel/' . $productUniqueCode . '/' . $fileName;
                 } else {
                     $errors[] = "Erro ao fazer upload de " . $_FILES['images_upload']['name'][$i];
                 }
@@ -109,9 +114,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     foreach ($imagesInDatabase as $dbImage) {
         if (!in_array($dbImage, $existingImageUrlsFromForm)) {
             // A imagem foi removida pelo usuário, então a removemos do servidor
-            $filePath = str_replace($_SESSION['base_url'] . '/', '../../', $dbImage);
+            // Extrai o caminho relativo da imagem para poder verificar e deletar
+            $relativePath = str_replace($_SESSION['base_url'] . '/', '', $dbImage);
+            $filePath = '../../' . $relativePath;
             if (file_exists($filePath)) {
                 unlink($filePath); // Exclui o arquivo físico
+            }
+            // Verifica se a pasta do produto ficou vazia e a remove
+            $dirPath = dirname($filePath);
+            if (is_dir($dirPath) && count(scandir($dirPath)) == 2) { // . e ..
+                rmdir($dirPath);
             }
         }
     }

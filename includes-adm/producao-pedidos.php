@@ -109,7 +109,7 @@ function etapaIndex($etapaAtual)
             return 0; // Default to 'Pendente'
     }
 }
-print_r($aprovacao);
+// print_r($aprovacao);
 ?>
 
 <div class="bg-white rounded-lg shadow-md mb-6">
@@ -293,14 +293,13 @@ print_r($aprovacao);
                         <input type="hidden" name="user_id" value="<?= htmlspecialchars($purchase['user_id']) ?>">
                         <input type="hidden" name="purchase_id" value="<?= htmlspecialchars($purchase['id']) ?>">
                         <div class="mb-4">
-                            <label for="zip_file" class="block text-sm font-medium text-gray-700">Selecione o arquivo
-                                ZIP:</label>
-                            <input type="file" name="zip_file" id="zip_file" accept=".zip"
+                            <label for="delivery_files" class="block text-sm font-medium text-gray-700">Selecione os arquivos de entrega:</label>
+                            <input type="file" name="delivery_files[]" id="delivery_files" multiple
                                 class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800">
                         </div>
                         <button type="submit"
                             class="bg-black text-white px-4 py-2 rounded-md font-medium hover:bg-gray-800 transition">
-                            Fazer Upload do ZIP
+                            Fazer Upload dos Arquivos
                         </button>
                     </form>
                 </div>

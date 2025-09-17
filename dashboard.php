@@ -130,53 +130,53 @@ if (!empty($user['avatar_url']) && file_exists('uploads/avatars/' . htmlspecialc
         <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white shadow-md w-64 transform transition-transform duration-300 ease-in-out z-30 -translate-x-full md:translate-x-0">
             <div class="p-4 border-b border-gray-200">
                 <h1 class="text-2xl font-bold text-black">
-                    <span class="font-bold">Feed</span><span class="font-light">Perfeito</span>
+                    <span class="font-bold" style="color: rgb(147, 51, 234);">Feed</span><span class="font-light">Perfeito</span>
                 </h1>
                 <p class="text-gray-600 text-sm">Cliente Dashboard</p>
             </div>
 
             <nav class="mt-6 flex-1">
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/inicio" class="flex items-center px-6 py-3 <?php echo ($active_section === 'inicio') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-home mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/inicio" class="flex items-center px-6 py-3 <?php echo ($active_section === 'inicio') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'inicio') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-home mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/pedidos" class="flex items-center px-6 py-3 <?php echo ($active_section === 'pedidos') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-shopping-cart mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/pedidos" class="flex items-center px-6 py-3 <?php echo ($active_section === 'pedidos') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'pedidos') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-shopping-cart mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Meus Pedidos</span>
                 </a>
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/carrossel" class="flex items-center px-6 py-3 <?php echo ($active_section === 'loja') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-clone mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/carrossel" class="flex items-center px-6 py-3 <?php echo ($active_section === 'loja') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'loja') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-clone mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Loja de Carrossel</span>
                 </a>
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/estatico" class="flex items-center px-6 py-3 <?php echo ($active_section === 'estatico') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-bookmark mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/estatico" class="flex items-center px-6 py-3 <?php echo ($active_section === 'estatico') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'estatico') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-bookmark mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Loja de Estático</span>
                 </a>
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/servicos" class="flex items-center px-6 py-3 <?php echo ($active_section === 'servicos') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-tag mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/servicos" class="flex items-center px-6 py-3 <?php echo ($active_section === 'servicos') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'servicos') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-tag mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Loja de Serviços</span>
                 </a>
                 <!-- <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/promocoes" class="flex items-center px-6 py-3 <?php echo ($active_section === 'promocoes') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
                     <i class="fas fa-tag mr-3 w-5 text-center"></i>
                     <span>Promoções</span>
                 </a> -->
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/creditos" class="flex items-center px-6 py-3 <?php echo ($active_section === 'creditos') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-coins mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/creditos" class="flex items-center px-6 py-3 <?php echo ($active_section === 'creditos') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'creditos') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-coins mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Adicionar Créditos</span>
                 </a>
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/history" class="flex items-center px-6 py-3 <?php echo ($active_section === 'history') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-check-circle mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/history" class="flex items-center px-6 py-3 <?php echo ($active_section === 'history') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'history') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-check-circle mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Histórico de Pedidos</span>
                 </a>
-                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/products-history" class="flex items-center px-6 py-3 <?php echo ($active_section === 'products-history') ? 'bg-gray-100 border-l-4 border-black text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>">
-                    <i class="fas fa-box mr-3 w-5 text-center"></i>
+                <a href="<?php echo $_SESSION['base_url']; ?>/dashboard/products-history" class="flex items-center px-6 py-3 <?php echo ($active_section === 'products-history') ? 'bg-gray-100 border-l-4 text-black' : 'text-gray-600 hover:text-black hover:bg-gray-50 border-l-4 border-transparent'; ?>" style="<?php echo ($active_section === 'products-history') ? 'border-color: rgb(147, 51, 234);' : ''; ?>">
+                    <i class="fas fa-box mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Histórico de Creditos</span>
                 </a>
             </nav>
 
             <div class="absolute bottom-0 w-64 p-4 border-t border-gray-200">
                 <a href="<?php echo $_SESSION['base_url']; ?>/logout" class="flex items-center text-gray-600 hover:text-black">
-                    <i class="fas fa-sign-out-alt mr-3 w-5 text-center"></i>
+                    <i class="fas fa-sign-out-alt mr-3 w-5 text-center" style="color: rgb(147, 51, 234);"></i>
                     <span>Sair</span>
                 </a>
             </div>

@@ -8,7 +8,7 @@ require_once '../../models/FeedProduct.php'; // Alterado para FeedProduct.php
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = $_POST;
     $uploadedImageUrls = [];
-    $downloadPath = null;
+    $uploadedDownloadPaths = [];
 
     // Lógica para upload de imagens
     if (!empty($_FILES['images_upload']['name'][0])) {
@@ -36,62 +36,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $errors[] = "Formato de arquivo não permitido para " . $_FILES['images_upload']['name'][$i];
             }
         }
+    } // Fechamento do if de images_upload
+    if (!empty($errors)) {
+        $_SESSION['status_type'] = 'error';
+        $_SESSION['status_message'] = 'Erro(s) no upload de imagens: ' . implode(', ', $errors);
+        header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed'); // Alterado para produtos-feed
+        exit();
+    }
 
-        if (!empty($errors)) {
+    // Lógica para upload de múltiplos arquivos de download
+    if (!empty($_FILES['download']['name'][0])) {
+        $productDownloadDirName = uniqid('download_'); // Gera um nome único para a pasta de downloads
+        $uploadDownloadDir = '../../doc/prontos/feed/' . $productDownloadDirName . '/';
+        if (!is_dir($uploadDownloadDir)) {
+            mkdir($uploadDownloadDir, 0777, true);
+        }
+
+        $totalDownloadFiles = count($_FILES['download']['name']);
+        $downloadErrors = [];
+
+        for ($i = 0; $i < $totalDownloadFiles; $i++) {
+            $fileName = uniqid() . '_' . basename($_FILES['download']['name'][$i]);
+            $targetFilePath = $uploadDownloadDir . $fileName;
+            $fileType = strtolower(pathinfo($targetFilePath, PATHINFO_EXTENSION));
+
+            $allowTypes = ['zip', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'png', 'jpeg', 'gif'];
+            if (in_array($fileType, $allowTypes)) {
+                if (move_uploaded_file($_FILES['download']['tmp_name'][$i], $targetFilePath)) {
+                    $uploadedDownloadPaths[] = '/doc/prontos/feed/' . $productDownloadDirName . '/' . $fileName;
+                } else {
+                    $downloadErrors[] = "Erro ao fazer upload de " . $_FILES['download']['name'][$i];
+                }
+            } else {
+                $downloadErrors[] = "Formato de arquivo não permitido para " . $_FILES['download']['name'][$i];
+            }
+        }
+
+        if (!empty($downloadErrors)) {
             $_SESSION['status_type'] = 'error';
-            $_SESSION['status_message'] = 'Erro(s) no upload de imagens: ' . implode(', ', $errors);
-            header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed'); // Alterado para produtos-feed
+            $_SESSION['status_message'] = 'Erro(s) no upload de downloads: ' . implode(', ', $downloadErrors);
+            header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed');
             exit();
         }
-    
-        // Lógica para upload de arquivo de download
-        if (isset($_FILES['download']) && $_FILES['download']['error'] === UPLOAD_ERR_OK) {
-            $file = $_FILES['download'];
-            $uploadDir = '../../doc/prontos/feed/'; // Novo diretório para downloads de feed
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-    
-            $fileName = uniqid() . '_' . basename($file['name']);
-            $destination = $uploadDir . $fileName;
-    
-            if (move_uploaded_file($file['tmp_name'], $destination)) {
-                $downloadPath = 'doc/prontos/feed/' . $fileName;
-            } else {
-                $_SESSION['status_type'] = 'error';
-                $_SESSION['status_message'] = 'Erro ao fazer upload do arquivo de download.';
-                header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed');
-                exit();
-            }
-        }
     }
+
 
     // Validação básica dos dados do formulário
     if (!isset($data['name']) || !isset($data['credits'])) {
         $_SESSION['status_type'] = 'error';
         $_SESSION['status_message'] = 'Dados incompletos. Nome e créditos são obrigatórios.';
-        header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed'); // Alterado para produtos-feed
+        header('Location: ' . $_SESSION['base_url'] . '/admin/produtos-feed');
         exit();
     }
 
-    $feedProduct = new FeedProduct(); // Alterado para FeedProduct
-    
+    $feedProduct = new FeedProduct();
+
     // Preparar os dados para criação
     $productData = [
         'name' => $data['name'],
         'theme' => $data['theme'] ?? null,
         'category' => $data['category'] ?? null,
         'type' => $data['type'] ?? null,
-        'utilization' => $data['utilization'] ?? null, // Adicionado
+        'utilization' => $data['utilization'] ?? null,
         'credits' => $data['credits'],
         'sold_quantity' => $data['sold_quantity'] ?? 0,
         'customization_types' => isset($data['customization_types']) ? json_encode($data['customization_types']) : null,
         'description' => $data['description'] ?? null,
         'page_count' => $data['page_count'] ?? 1,
         'status' => $data['status'] ?? 'active',
-        'unique_code' => uniqid('feed_'), // Gerar um código único para feed
-        'images' => json_encode($uploadedImageUrls), // Salva URLs das imagens como JSON
-        'download' => $downloadPath // Salva o caminho do arquivo de download
+        'unique_code' => uniqid('feed_'),
+        'images' => json_encode($uploadedImageUrls),
+        'download' => json_encode($uploadedDownloadPaths) // Corrigido para salvar como JSON
     ];
 
     if ($feedProduct->create($productData)) { // Alterado para $feedProduct->create
